@@ -18,13 +18,22 @@ const string KBleu("34");
 const string KMagenta("35");
 const string KCyan("36");
 
+const char KLeft = 'q';
+const char KTop = 'z';
+const char KDown = 's';
+const char KRight = 'd';
+
 const char KEmpty = '.';
 const char KObstacle = 'O';
 const char KBorderLine = '_';
 const char KBorderColumn = '|';
+
+const unsigned KSizeY(10);
+const unsigned KSizeX(10);
+
 typedef vector <char> CVLine;
 typedef vector <CVLine> CMatrix;
-
+typedef vector <pair<unsigned, unsigned>> CForbidenPos;
 namespace {
 	typedef struct {
 		unsigned m_X;
@@ -35,7 +44,7 @@ namespace {
 		string m_color;
 	} SPlayer;
 
- 	typedef struct {
+	typedef struct {
 		unsigned m_X;
 		unsigned m_Y;
 		char m_token;
@@ -165,15 +174,15 @@ namespace {
 		for (unsigned i(Player.m_Y); i < Player.m_Y + Player.m_sizeY; ++i) {
 			for (unsigned j(Player.m_X); j < Player.m_X + Player.m_sizeX; ++j) {
 				//Début de la détéction des bonus
-				
+
 				if (Mat[i][j] == 'B') {
 
 					++Player.m_sizeX;
 					++Player.m_sizeY;
-					
+
 				}
 
-			 	//Fin de la détéction des bonus
+				//Fin de la détéction des bonus
 				for (unsigned i(Player.m_Y); i < Player.m_Y + Player.m_sizeY; ++i)
 					for (unsigned j(Player.m_X); j < Player.m_X + Player.m_sizeX; ++j)
 						Mat[i][j] = Player.m_token;
@@ -181,6 +190,105 @@ namespace {
 		}
 	}
 
+
+	// OBSTACLES
+
+	SObstacle InitObstacle(const unsigned
+		AxeX, const unsigned AxeY, const char Token, const string Color, CForbidenPos & ForbidenPositions) {
+
+		SObstacle tmpObstacle;
+
+		tmpObstacle.m_X = AxeX;
+		tmpObstacle.m_Y = AxeY;
+		tmpObstacle.m_token = Token;
+		tmpObstacle.m_color = Color;
+		ForbidenPositions.push_back(make_pair(AxeX, AxeY));
+		return tmpObstacle;
+	}
+
+
+	void PutObstacle(CMatrix & Matrice, const SObstacle & obstacle) {
+		Matrice[obstacle.m_X][obstacle.m_Y] = obstacle.m_token;
+	}
+
+	void GenerateRandomObstacles(CMatrix & Matrice, SObstacle & Obstacle, const unsigned & SizeObs) {
+		unsigned tmpX, tmpY;
+		for (unsigned i(0); i < SizeObs; ++i)
+		{
+			tmpX = Obstacle.m_X;
+			tmpY = Obstacle.m_Y;
+			int intrandom = IntRandom(1, 2);
+
+
+			if (intrandom == 1) {
+				Obstacle.m_X = tmpX + 1;
+				PutObstacle(Matrice, Obstacle);
+			}
+			else if (intrandom == 2) {
+				Obstacle.m_Y = tmpY + 1;
+				PutObstacle(Matrice, Obstacle);
+
+			}
+		}
+	}
+
+	bool CanMove(SPlayer & Player, const CForbidenPos ForbidenPositions) {
+
+		for (unsigned i(0); i < ForbidenPositions.size(); ++i) {
+			for (unsigned i(0); i <= Player.m_sizeX; ++i) {
+ 				if (ForbidenPositions[i].first == (Player.m_X + i + 1) && ForbidenPositions[i].second == (Player.m_Y + i - 1)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X + i - 1) && ForbidenPositions[i].second == (Player.m_Y + i - 1)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X + i - 1) && ForbidenPositions[i].second == (Player.m_Y + i + 1)) return false;
+
+				if (ForbidenPositions[i].first == (Player.m_X + i) && ForbidenPositions[i].second == (Player.m_Y + i + 1)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X + i) && ForbidenPositions[i].second == (Player.m_Y + i - 1)) return false;
+
+				if (ForbidenPositions[i].first == (Player.m_X + i + 1) && ForbidenPositions[i].second == (Player.m_Y + i)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X + i) && ForbidenPositions[i].second == (Player.m_Y + i + 1)) return false;
+
+				if (ForbidenPositions[i].first == (Player.m_X + i - 1) && ForbidenPositions[i].second == (Player.m_Y + i)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X + i) && ForbidenPositions[i].second == (Player.m_Y + i - 1)) return false;
+
+				if (ForbidenPositions[i].first == (Player.m_X + i) && ForbidenPositions[i].second == (Player.m_Y + i)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X - i + 1) && ForbidenPositions[i].second == (Player.m_Y - i + 1)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X - i + 1) && ForbidenPositions[i].second == (Player.m_Y - i - 1)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X - i - 1) && ForbidenPositions[i].second == (Player.m_Y - i - 1)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X - i - 1) && ForbidenPositions[i].second == (Player.m_Y - i + 1)) return false;
+								if (ForbidenPositions[i].first == (Player.m_X - i) && ForbidenPositions[i].second == (Player.m_Y - i + 1)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X - i) && ForbidenPositions[i].second == (Player.m_Y - i - 1)) return false;
+
+				if (ForbidenPositions[i].first == (Player.m_X - i + 1) && ForbidenPositions[i].second == (Player.m_Y - i)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X - i) && ForbidenPositions[i].second == (Player.m_Y - i + 1)) return false;
+
+				if (ForbidenPositions[i].first == (Player.m_X - i - 1) && ForbidenPositions[i].second == (Player.m_Y - i)) return false;
+				if (ForbidenPositions[i].first == (Player.m_X - i) && ForbidenPositions[i].second == (Player.m_Y - i - 1)) return false;
+
+				if (ForbidenPositions[i].first == (Player.m_X - i) && ForbidenPositions[i].second == (Player.m_Y - i)) return false;
+
+			}
+		
+			
+			/*if (ForbidenPositions[i].first == (Player.m_X + 1) && ForbidenPositions[i].second == (Player.m_Y + 1)) return false;
+			if (ForbidenPositions[i].first == (Player.m_X + 1) && ForbidenPositions[i].second == (Player.m_Y - 1)) return false;
+			if (ForbidenPositions[i].first == (Player.m_X - 1) && ForbidenPositions[i].second == (Player.m_Y - 1)) return false;
+			if (ForbidenPositions[i].first == (Player.m_X - 1) && ForbidenPositions[i].second == (Player.m_Y + 1)) return false;
+
+			if (ForbidenPositions[i].first == (Player.m_X) && ForbidenPositions[i].second == (Player.m_Y + 1)) return false;
+			if (ForbidenPositions[i].first == (Player.m_X) && ForbidenPositions[i].second == (Player.m_Y - 1)) return false;
+
+			if (ForbidenPositions[i].first == (Player.m_X + 1) && ForbidenPositions[i].second == (Player.m_Y)) return false;
+			if (ForbidenPositions[i].first == (Player.m_X) && ForbidenPositions[i].second == (Player.m_Y +1)) return false;
+
+			if (ForbidenPositions[i].first == (Player.m_X - 1) && ForbidenPositions[i].second == (Player.m_Y)) return false;
+			if (ForbidenPositions[i].first == (Player.m_X) && ForbidenPositions[i].second == (Player.m_Y - 1)) return false;
+
+			if (ForbidenPositions[i].first == (Player.m_X ) && ForbidenPositions[i].second == (Player.m_Y )) return false;
+		*/
+		}
+
+		return true;
+
+	}
 
 	// PLAYERS
 
@@ -198,142 +306,100 @@ namespace {
 		return tmpPlayer;
 	}
 
-	void MovePlayer(CMatrix & Mat, char Move, SPlayer & player) {
+	void MovePlayer(CMatrix & Mat, char Move, SPlayer & player, CForbidenPos & ForbidenPos) {
 		switch (Move)
 		{
-		case 'z':
-			if (player.m_Y > 0)
-			{
-				player.m_Y = player.m_Y - 1;
-				GetBonus(Mat, player);
-				for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i)
-					Mat[player.m_Y + player.m_sizeY][i] = KEmpty;
-				for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i)
-					Mat[player.m_Y][i] = player.m_token;
+		case KTop:
+			if (CanMove(player, ForbidenPos)) {
+				if (player.m_Y > 0)
+				{
+					player.m_Y = player.m_Y - 1;
+					GetBonus(Mat, player);
+					for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i)
+						Mat[player.m_Y + player.m_sizeY][i] = KEmpty;
+					for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i)
+						Mat[player.m_Y][i] = player.m_token;
+
+				}
 			}
 			break;
-		case 's':
-			if (player.m_Y + player.m_sizeY < Mat.size())
-			{
-				player.m_Y = player.m_Y + 1;
-				GetBonus(Mat, player);
-				for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i)
-					Mat[player.m_Y - 1][i] = KEmpty;
-				for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i)
-					Mat[player.m_Y + player.m_sizeY - 1][i] = player.m_token;
+		case KDown:
+			if (CanMove(player, ForbidenPos)) {
+				if (player.m_Y + player.m_sizeY < Mat.size())
+				{
+
+
+					player.m_Y = player.m_Y + 1;
+					GetBonus(Mat, player);
+
+					for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i)
+						Mat[player.m_Y - 1][i] = KEmpty;
+					for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i)
+						Mat[player.m_Y + player.m_sizeY - 1][i] = player.m_token;
+				}
+			}
+
+			break;
+		case KLeft:
+			if (CanMove(player, ForbidenPos)) {
+				if (player.m_X > 0)
+				{
+
+					player.m_X = player.m_X - 1;
+					GetBonus(Mat, player);
+					for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i)
+						Mat[i][player.m_X + player.m_sizeX] = KEmpty;
+					for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i)
+						Mat[i][player.m_X] = player.m_token;
+				}
 
 			}
 			break;
-		case 'q':
-			if (player.m_X > 0)
-			{
-				player.m_X = player.m_X - 1;
-				GetBonus(Mat, player);
-				for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i)
-					Mat[i][player.m_X + player.m_sizeX] = KEmpty;
-				for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i)
-					Mat[i][player.m_X] = player.m_token;
+		case KRight:
+			if (CanMove(player, ForbidenPos)) {
+				if (player.m_X + player.m_sizeX < Mat[0].size())
+				{
+
+					player.m_X = player.m_X + 1;
+					GetBonus(Mat, player);
+					for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i)
+						Mat[i][player.m_X - 1] = KEmpty;
+					for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i)
+						Mat[i][player.m_X + player.m_sizeX - 1] = player.m_token;
+
+				}
 			}
 			break;
-		case 'd':
-			if (player.m_X + player.m_sizeX < Mat[0].size())
-			{
-				player.m_X = player.m_X + 1;
-				GetBonus(Mat, player);
-				for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i)
-					Mat[i][player.m_X - 1] = KEmpty;
-				for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i)
-					Mat[i][player.m_X + player.m_sizeX - 1] = player.m_token;
-			}
-			break;
-		}
-	}
 
-	// OBSTACLES
-
-	SObstacle InitObstacle( const unsigned
-		AxeX, const unsigned AxeY, const char Token, const string Color) {
-
-		SObstacle tmpObstacle;
-
-		tmpObstacle.m_X = AxeX;
-		tmpObstacle.m_Y = AxeY;
-		tmpObstacle.m_token = Token;
-		tmpObstacle.m_color = Color;
-
-		return tmpObstacle;
-	}
-
-
-	void PutObstacle(CMatrix & Matrice, const SObstacle & obstacle) {
-		Matrice[obstacle.m_X - 1][obstacle.m_Y] = obstacle.m_token;
-	}
-
-	void GenerateRandomObstacles(CMatrix & Matrice, SObstacle & Obstacle, const unsigned & SizeObs) {
-		unsigned tmpX, tmpY;
-		for (unsigned i(0); i < SizeObs; ++i)
-		{
-			tmpX = Obstacle.m_X;
-			tmpY = Obstacle.m_Y;
-			int intrandom = IntRandom(1, 4);
-
-
-			if (intrandom == 1) {
-				Obstacle.m_X = tmpX + 1;
-				PutObstacle(Matrice, Obstacle);
-			}
-			else if (intrandom == 2) {
-				Obstacle.m_Y = tmpY + 1;
-				PutObstacle(Matrice, Obstacle);
-			}
-			else if (intrandom == 3) {
-				Obstacle.m_Y = tmpY - 1;
-				PutObstacle(Matrice, Obstacle);
-			}
-			else if (intrandom == 4) {
-				Obstacle.m_X = tmpX - 1;
-				PutObstacle(Matrice, Obstacle);
-			}
 
 		}
 	}
-
-
-
 
 	//AUTRE
 	unsigned AskTourMax() {
-		unsigned NbRnds;
+		unsigned nbrnds;
 		cout << "Entrez le nombre de rounds" << endl;
-		cin >> NbRnds;
-		return NbRnds;
-	}
-	// todo
-	bool CanMove(SPlayer Joueur) {
-		return true;
+		cin >> nbrnds;
+		return nbrnds;
 	}
 
 }
 
 int main()
 {
-	const unsigned KSizeY(20);
-	const unsigned KSizeX(20);
 
 	unsigned NbRnds = AskTourMax();
 	char EnteredKey;
 
-
-	SPlayer FirstPlayer = InitPlayer(1, 1, 1, 1, 'X', KRouge);
+	CForbidenPos ForbidenPos;
+	SPlayer FirstPlayer = InitPlayer(1, 1, 1, KSizeY / 2, 'X', KRouge);
 	SPlayer SecondPlayer = InitPlayer(1, 1, KSizeX - 2, KSizeY - 2, 'Y', KBleu);
-	SObstacle FirstObstacle = InitObstacle((KSizeX / 2), (KSizeX / 2 + 3), KObstacle, KMagenta);
+	SObstacle FirstObstacle = InitObstacle((KSizeX / 2), (KSizeX / 2), KObstacle, KMagenta, ForbidenPos);
 	SBonus FirstBonus = InitBonus(2, 2, 4, 4, 'B', KRouge);
 	CMatrix Map = InitMat(KSizeX + 1, KSizeY + 1, FirstPlayer, SecondPlayer, true); // +1 due à la bordure de '#' le long de la matrice
 
-
-	GenerateRandomObstacles(Map, FirstObstacle, 9);
+	GenerateRandomObstacles(Map, FirstObstacle, 4);
 	PutBonus(Map, FirstBonus);
-
 
 	ShowMatrix(Map, FirstPlayer, SecondPlayer);
 	for (unsigned i(0); i < NbRnds * 2; ++i)
@@ -345,8 +411,7 @@ int main()
 		cout << "Au tour de " << actualPlayer.m_token << endl;
 		cin >> EnteredKey;
 
-
-		if (CanMove(actualPlayer))   MovePlayer(Map, EnteredKey, actualPlayer);
+		MovePlayer(Map, EnteredKey, actualPlayer, ForbidenPos);
 
 		if (CheckIfWin(FirstPlayer, SecondPlayer))
 		{
