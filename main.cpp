@@ -8,8 +8,6 @@
 
 using namespace std;
 
-
-
 const string KReset("0");
 const string KNoir("30");
 const string KRouge("31");
@@ -18,24 +16,6 @@ const string KJaune("33");
 const string KBleu("34");
 const string KMagenta("35");
 const string KCyan("36");
-
- 
-const char KLeft = 'q';
-const char KTop = 'z';
-const char KBottom = 's';
-const char KRight = 'd';
-
-const char KEmpty = '.';
-const char KObstacle = '#';
-const char KBorderLine = '#';
-const char KBorderColumn = '#';
-const char KFirstPlayer = 'X';
-const char KSecondPlayer = 'O';
-const char KBonus = 'B';
-
-
-const unsigned KSizeY(10);
-const unsigned KSizeX(10);
 
 typedef vector <char> CVLine;
 typedef vector <CVLine> CMatrix;
@@ -64,10 +44,31 @@ typedef struct {
 } SBonus;
 
 namespace {
+	/* VARIABLES DE CONFIGURATION */
 
-	vector<SObstacle> VObstacle;
+	vector <SObstacle> VObstacle;
+	vector <string> VOptionsName;
+	vector <string> VOptionValue;
+
+
+	unsigned KSizeY(10);
+	unsigned KSizeX(10);
+
+	char KBonus;
+	char KLeft;
+	char KTop;
+	char KBot;
+	char KRight;
+	char KEmpty;
+	char KObstacle;
+	char KBorderLine;
+	char KBorderColumn;
+	char KFirstPlayer;
+	char KSecondPlayer;
+
 
 	//AUTRE 
+
 	void Couleur(const string & coul) {
 		cout << "\033[" << coul << "m";
 
@@ -85,7 +86,67 @@ namespace {
 		return uni(rng);
 	}
 
+	unsigned AskTourMax() {
+		unsigned nbrnds;
+		cout << "Entrez le nombre de rounds" << endl;
+		cin >> nbrnds;
+		return nbrnds;
+	}
 
+	// OPTIONS
+
+	void InitOptions() {
+
+		//All configs go here !AND! in header part !AND! in SetConfig();
+
+		KBonus = 'B';
+		KLeft = 'q';
+		KTop = 'z';
+		KBot = 's';
+		KRight = 'd';
+		KEmpty = '.';
+		KObstacle = '#';
+		KBorderLine = '#';
+		KBorderColumn = '#';
+		KFirstPlayer = 'X';
+		KSecondPlayer = 'O';
+
+		VOptionsName = { "KBonus", "KLeft", "KTop", "KBot", "KRight", "KEmpty", "KObstacle", "KBorderLine", "KBorderColumn", "KFirstPlayer", "KSecondPlayer" };
+		VOptionValue = { "B", "q", "z", "s" ,"d ",".", "#" ,"#","#", "X" ,"O" }; //Valeurs pour VOptionsName[i]
+
+
+	}
+
+	void SetConfig(string Name, const char Value) {
+
+		for (unsigned i(0); i < VOptionsName.size(); ++i)
+			if (VOptionsName[i] == Name) VOptionValue[i] = Value;
+
+
+		if (Name == "KLeft") KLeft = Value;
+
+		else if ("KTop" == Name) KTop = Value;
+
+		else if ("KBot" == Name) KBot = Value;
+
+		else if ("KRight" == Name) KRight = Value;
+
+		else if ("KObstacle" == Name) KObstacle = Value;
+
+		else if ("KBorderLine" == Name) KBorderLine = Value;
+
+		else if ("KBorderColumn" == Name) KBorderColumn = Value;
+
+		else if ("KFirstPlayer" == Name) KFirstPlayer = Value;
+
+		else if ("KSecondPlayer" == Name) KSecondPlayer = Value;
+
+		/*if ((!(KBorderLine == KBorderColumn)) || (!(KBorderLine == KObstacle)) || (!(KBorderColumn == KObstacle))) {
+			Couleur(KRouge);
+			cout << "[!] KBorderLine, KObstacle et KBorderColumn doivent avoir le même caractère" << endl;
+			Couleur(KReset);
+		}  // Semble ne peut être dérangeant ? */
+	}
 	// MATRICE
 
 	CMatrix InitMat(unsigned NbLine, unsigned NbColumn, SPlayer & FirstPlayer, SPlayer & SecondPlayer, bool ShowBorder = true) {
@@ -121,7 +182,6 @@ namespace {
 
 		}
 
-
 		return tmpMatrix;
 	}
 
@@ -131,35 +191,23 @@ namespace {
 		for (unsigned i(0); i < Mat.size(); ++i) {
 			for (unsigned a(0); a < Mat[i].size(); ++a) {
 
-				switch (Mat[i][a])
-				{
-				case KObstacle:
-					Couleur(KNoir);
-					break;
+				if (Mat[i][a] == KObstacle) Couleur(KNoir);
 
-				case KBonus:
-					Couleur(KVert);
-					break;
+				if (Mat[i][a] == KBonus) Couleur(KVert);
 
-				case KFirstPlayer:
-					Couleur(KRouge);
-					break;
+				if (Mat[i][a] == KFirstPlayer) Couleur(KRouge);
 
-				case KSecondPlayer:
-					Couleur(KBleu);
-					break;
+				if (Mat[i][a] == KSecondPlayer)	Couleur(KBleu);
 
-				}
 				cout << Mat[i][a];
 				Couleur(KReset);
+
 			}
 			cout << endl;
-
 		}
 	}
 
-
-	// WIN CHECK/STAT
+	// WIN CHECK - WIN STAT
 
 	bool CheckIfWin(SPlayer & FirstPlayer, SPlayer & SecondPlayer) {
 		return !((FirstPlayer.m_X > SecondPlayer.m_X + SecondPlayer.m_sizeX - 1) ||
@@ -234,8 +282,6 @@ namespace {
 
 	}
 
-
-
 	void GenerateRandomObstacles(CMatrix & Matrice, const SObstacle & Obstacle, const unsigned & SizeObs) {
 		SObstacle tmpObs = Obstacle;
 
@@ -258,11 +304,7 @@ namespace {
 
 			}
 		}
-
-
-
 	}
-
 
 	bool IsMovementAllowed(const SPlayer & Player, char & Movement) {
 
@@ -270,7 +312,7 @@ namespace {
 			if (VObstacle[i].m_X == Player.m_X  &&
 				VObstacle[i].m_Y == Player.m_Y - 1 && Movement == KTop) return true;
 			else if (VObstacle[i].m_X == Player.m_X  &&
-				VObstacle[i].m_Y == Player.m_Y + 1 && Movement == KBottom) return true;
+				VObstacle[i].m_Y == Player.m_Y + 1 && Movement == KBot) return true;
 
 			else if (VObstacle[i].m_X == Player.m_X - 1 &&
 				VObstacle[i].m_Y == Player.m_Y  && Movement == KLeft) return true;
@@ -299,9 +341,9 @@ namespace {
 	void MovePlayer(CMatrix & Mat, char Move, SPlayer & player) {
 
 		if (IsMovementAllowed(player, Move)) return;
-		switch (Move)
-		{
-		case KTop:
+
+
+		if (Move == KTop) {
 			if (player.m_Y > 1) //Verifie les bordures
 			{
 
@@ -314,9 +356,11 @@ namespace {
 
 				}
 			}
-			break;
-		case KBottom:
-		{
+		}
+
+
+		else if (Move == KBot) {
+
 			if (player.m_Y + player.m_sizeY < Mat.size() - 1) {
 				player.m_Y += 1;
 				GetBonus(Mat, player);
@@ -329,8 +373,7 @@ namespace {
 			}
 		}
 
-		break;
-		case KLeft:
+		else if (Move == KLeft) {
 			if (player.m_X > 1)
 			{
 				player.m_X -= 1;
@@ -341,9 +384,9 @@ namespace {
 					Mat[i][player.m_X] = player.m_token;
 				}
 			}
-			break;
+		}
 
-		case KRight:
+		else if (Move == KRight) {
 			if (player.m_X + player.m_sizeX < Mat[0].size() - 1)
 			{
 				player.m_X += 1;
@@ -354,22 +397,15 @@ namespace {
 					Mat[i][player.m_X + player.m_sizeX - 1] = player.m_token;
 				}
 			}
-			break;
-
-
 		}
 	}
 
-	//AUTRE
-	unsigned AskTourMax() {
-		unsigned nbrnds;
-		cout << "Entrez le nombre de rounds" << endl;
-		cin >> nbrnds;
-		return nbrnds;
-	}
-
 	//DISPLAYS
-	void DisplayGame() {
+
+
+	void DisplayMenu();
+
+	void DisplayMulti() {
 
 
 		unsigned NbRnds = AskTourMax();
@@ -410,13 +446,65 @@ namespace {
 				return;
 			}
 
-			/* for (unsigned i(0); i < VObstacle.size(); ++i) { //Loging Obs && Player's position
-				cout << VObstacle[i].m_X << "    " << VObstacle[i].m_Y << " | " << actualPlayer.m_X << "    " << actualPlayer.m_Y << endl;
-			} */
 
 		}
 
 		cout << "Egalité !" << endl;
+	}
+
+	void DisplayOption() {
+
+		ClearScreen();
+		const vector <string> optiontitle = {
+			" _____   _____   _____   _   _____   __   _   _____  ",
+			"/  _  \\ |  _  \\ |_   _| | | /  _  \\ |  \\ | | /  ___/ ",
+			"| | | | | |_| |   | |   | | | | | | |   \\| | | |___  ",
+			"| | | | |  ___/   | |   | | | | | | | |\\   | \\___  \\ ",
+			"| |_| | | |       | |   | | | |_| | | | \\  |  ___| | ",
+			"\\_____/ |_|       |_|   |_| \\_____/ |_|  \\_| /_____/ ",
+			"\n"
+		};
+		for (string Lines : optiontitle) cout << ' ' << Lines << endl;
+
+		cout << "Liste des options par defaut : " << endl;
+
+		for (unsigned i(0); i < VOptionsName.size(); ++i) cout << i << ". " << VOptionsName[i] << " : '" << VOptionValue[i] << '\'' << endl;
+
+		Couleur(KRouge);
+
+		cout << endl << "[!] Attention, ces configurations ne seront présentes jusqu'à la fermeture complète du jeu." << endl;
+
+		Couleur(KVert);
+
+		cout << endl << "[?] Voulez-vous modifier une option ? [Y/n] ";
+
+		char choix;
+		cin >> choix;
+
+		if (choix == 'y') {
+
+			cout << endl << "[+] Afin de modifier un paramètre, veuillez entrer le numéro correspondant : ";
+			unsigned numero;
+			cin >> numero;
+			cout << VOptionsName[numero] << " deviendra : ";
+			char newparam;
+			cin >> newparam;
+			SetConfig(VOptionsName[numero], newparam);
+
+			Couleur(KReset);
+
+		}
+		else if (choix == 'n') exit(0);
+
+		DisplayMenu();
+
+		Couleur(KReset);
+	}
+
+	void DisplaySolo() {
+
+		//TODO
+
 	}
 
 	void DisplayMenu() {
@@ -426,7 +514,7 @@ namespace {
 
 		unsigned choice(0);
 
-		static vector <string>  menutitle = {
+		const vector <string>  menutitle = {
 			"     ___  ___   _____   __   _   _   _  ",
 			"    /   |/   | | ____| |  \\ | | | | | | ",
 			"   / /|   /| | | |__   |   \\| | | | | | ",
@@ -445,45 +533,42 @@ namespace {
 			Couleur(KRouge);
 			cout << "[" << choice << "] ";
 			Couleur(KReset);
-			cout << Option << endl;
+			cout << Option << endl << endl;
 
 		}
-		cout << endl << "Choose between [1-" << MenuList.size() <<"] : ";
+		cout << endl << "Choose between [1-" << MenuList.size() << "] : ";
 
 		unsigned input;
 		cin >> input;
+
 		switch (input) {
-
 		case 1:
-			cout << "ok";
+			DisplaySolo();
 			break;
-
 		case 2:
-
-			DisplayGame();
+			DisplayMulti();
 			break;
 
 		case 3:
-
-			//DisplayGame();
+			DisplayOption();
 			break;
 
 		case 4:
-
 			exit(0);
-			 
+
 		default:
 
 			Couleur(KRouge);
-			cout << "Choix invalide !" << endl;
+			cout << "[!] Choix invalide !" << endl;
 			Couleur(KReset);
 		}
 	}
 
-
 }
+
 int main()
 {
+	InitOptions();
 	DisplayMenu();
 	return 0;
 }
