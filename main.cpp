@@ -13,11 +13,22 @@
 #include <unistd.h>
 
 using namespace std;
-// Ligne 397 : modifier le '(int)' en 'int()' si bug le 02/01/2017
+
+/*
+
+TODO :
+	- Changer le nom des variables en uppercase
+	- Ajouter un timer
+	- Supprimer les headers supperflus
+	- Régler les problèmes de déplacement du joueur (?)
+	- Utiliser les fichiers externes pour l'ASCII-Art dans les Display
+	- Enlever le "K" pour les non-constantes variables
+*/
+
 //Compilation préconisée : rm main.out; g++ -std=c++11  main.cpp -o main.out -Wall -ltinfo -lncurses;  ./main.out
 
 typedef vector <char> CVLine;
-typedef vector <CVLine> CMatrix;
+typedef vector <CVLine> CMatricerix;
 
 typedef struct {
 	unsigned m_X;
@@ -57,7 +68,7 @@ namespace {
 	unsigned KDelay;
 	unsigned KDifficult;
 
-	/*COULEURS BASIQUE*/
+	/*CoulEURS BASIQUE*/
 	const string KReset("0");
 	const string KNoir("30");
 	const string KRouge("31");
@@ -102,34 +113,34 @@ namespace {
 
 
 	//SCREEN 
-	void Couleur(const string & coul, const string highlight = "") {
-		if (highlight == "") cout << "\033[" << coul << "m";
-		else cout << "\033[34m\033[" << highlight << "m";
+	void Couleur(const string & Coul, const string Hightlight = "") {
+		if (Hightlight == "") cout << "\033[" << Coul << "m";
+		else cout << "\033[34m\033[" << Hightlight << "m";
 
 
 	} //Couleur()
 
 	unsigned GetTourMax() {
-		unsigned nbrnds;
+		unsigned Nbround;
 		Couleur(KCyan);
 		cout << endl << "[?] Entrez le nombre de rounds : ";
 		Couleur(KReset);
 
-		cin >> nbrnds;
-		return nbrnds;
+		cin >> Nbround;
+		return Nbround;
 	} //GetTourMax()
 
 	void ClearScreen() {
 		cout << "\033[H\033[2J";
 	}//ClearScreen()
 
-	int Rand(int min, int max) {
+	int Rand(int Min, int Max) {
 
-		random_device randm;
-		mt19937 rng(randm());
-		uniform_int_distribution<int> uni(min, max);
+		random_device Random;
+		mt19937 Rng(Random());
+		uniform_int_distribution<int> uni(Min, Max);
 
-		return uni(rng);
+		return uni(Rng);
 	}//Rand()
 
 	void InitCurses() {
@@ -138,8 +149,8 @@ namespace {
 		noecho();
 	} //InitCurses()
 
-	bool StrToBool(const string & chaine) {
-		return(chaine == "true" ? true : false);
+	bool StrToBool(const string & Chaine) {
+		return(Chaine == "true" ? true : false);
 	} //StrToBool()
 
 	// OPTIONS
@@ -181,19 +192,19 @@ namespace {
 
 	void SetConfig(string Name, const string &Value) {
 
-		vector<char> valuetochar(Value.c_str(), Value.c_str() + Value.size() + 1u);
+		vector<char> Valuetochar(Value.c_str(), Value.c_str() + Value.size() + 1u);
 
 		for (unsigned i(0); i < VOptionsName.size(); ++i)
 			if (VOptionsName[i] == Name) VOptionValue[i] = Value;
 
 
-		if ("KLeft" == Name) KLeft = valuetochar[0];
-		else if ("KTop" == Name) KTop = valuetochar[0];
-		else if ("KBot" == Name) KBot = valuetochar[0];
-		else if ("KRight" == Name) KRight = valuetochar[0];
-		else if ("KFirstPlayer" == Name) KFirstPlayer = valuetochar[0];
-		else if ("KEmpty" == Name) KEmpty = valuetochar[0];
-		else if ("KSecondPlayer" == Name) KSecondPlayer = valuetochar[0];
+		if ("KLeft" == Name) KLeft = Valuetochar[0];
+		else if ("KTop" == Name) KTop = Valuetochar[0];
+		else if ("KBot" == Name) KBot = Valuetochar[0];
+		else if ("KRight" == Name) KRight = Valuetochar[0];
+		else if ("KFirstPlayer" == Name) KFirstPlayer = Valuetochar[0];
+		else if ("KEmpty" == Name) KEmpty = Valuetochar[0];
+		else if ("KSecondPlayer" == Name) KSecondPlayer = Valuetochar[0];
 		else if ("KSizeX" == Name) KSizeX = stoul(Value);
 		else if ("KSizeY" == Name) KSizeY = stoul(Value);
 		else if ("KDelay" == Name) KDelay = stoul(Value);
@@ -204,46 +215,46 @@ namespace {
 	} //SetConfig();
 
 
-	// MATRICE
+	// Matrice
 
-	CMatrix InitMat(unsigned NbLine, unsigned NbColumn, SPlayer & FirstPlayer, SPlayer & SecondPlayer, bool ShowBorder = true) {
-		CMatrix mat;
-		mat.resize(NbLine);
+	CMatricerix InitMatrice(unsigned NbLine, unsigned NbColumn, SPlayer & FirstPlayer, SPlayer & SecondPlayer, bool ShowBorder = true) {
+		CMatricerix Matrice;
+		Matrice.resize(NbLine);
 
 		for (unsigned i(0); i < NbLine; ++i)
 			for (unsigned j(0); j < NbColumn; ++j)
-				mat[i].push_back(KEmpty);
+				Matrice[i].push_back(KEmpty);
 
 
 
 		for (unsigned i(FirstPlayer.m_Y); i < FirstPlayer.m_Y + FirstPlayer.m_sizeY; ++i)
 			for (unsigned j(FirstPlayer.m_X); j < FirstPlayer.m_X + FirstPlayer.m_sizeX; ++j)
-				mat[i][j] = FirstPlayer.m_token;
+				Matrice[i][j] = FirstPlayer.m_token;
 
 
 		for (unsigned i(SecondPlayer.m_Y); i < SecondPlayer.m_Y + SecondPlayer.m_sizeY; ++i)
 			for (unsigned j(SecondPlayer.m_X); j < SecondPlayer.m_X + SecondPlayer.m_sizeX; ++j)
-				mat[i][j] = SecondPlayer.m_token;
+				Matrice[i][j] = SecondPlayer.m_token;
 
 		if (ShowBorder) {
 			for (unsigned i(0); i < NbLine; ++i) {
 
-				mat[i][0] = KBorderColumn;
-				mat[i][NbColumn - 1] = KBorderColumn;
+				Matrice[i][0] = KBorderColumn;
+				Matrice[i][NbColumn - 1] = KBorderColumn;
 			}
 
 			for (unsigned i(0); i < NbColumn; ++i) {
-				mat[0][i] = KBorderLine;
-				mat[NbLine - 1][i] = KBorderLine;
+				Matrice[0][i] = KBorderLine;
+				Matrice[NbLine - 1][i] = KBorderLine;
 			}
 
 		}
 
 
-		return mat;
-	} //InitMat()
+		return Matrice;
+	} //InitMatrice()
 
-	void ShowMatrix(const CMatrix & Mat, const bool Clear = true) {
+	void ShowMatricerix(const CMatricerix & Matrice, const bool Clear = true) {
 
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
 
@@ -251,28 +262,28 @@ namespace {
 		cout << endl << endl;
 		Couleur(KReset);
 
-		for (unsigned i(0); i < Mat.size(); ++i) {
-			cout << setw(round(size.ws_col / 2) - Mat.size());
+		for (unsigned i(0); i < Matrice.size(); ++i) {
+			cout << setw(round(size.ws_col / 2) - Matrice.size());
 
-			for (unsigned a(0); a < Mat[i].size(); ++a) {
+			for (unsigned a(0); a < Matrice[i].size(); ++a) {
 
-				/*GESTION DES COULEURS*/
+				/*GESTION DES CoulEURS*/
 
-				if (Mat[i][a] == KObstacle) Couleur(KNoir);
-				if (Mat[i][a] == KBonusX) Couleur(KVert, KHVert);
-				if (Mat[i][a] == KBonusY) Couleur(KVert, KHVert);
-				if (Mat[i][a] == KBonusZ) Couleur(KVert, KHVert);
-				if (Mat[i][a] == KFirstPlayer) Couleur(KRouge, KHCyan);
-				if (Mat[i][a] == KSecondPlayer)	Couleur(KBleu, KHJaune);
-				if (Mat[i][a] == KEmpty) Couleur(KMagenta);
+				if (Matrice[i][a] == KObstacle) Couleur(KNoir);
+				if (Matrice[i][a] == KBonusX) Couleur(KVert, KHVert);
+				if (Matrice[i][a] == KBonusY) Couleur(KVert, KHVert);
+				if (Matrice[i][a] == KBonusZ) Couleur(KVert, KHVert);
+				if (Matrice[i][a] == KFirstPlayer) Couleur(KRouge, KHCyan);
+				if (Matrice[i][a] == KSecondPlayer)	Couleur(KBleu, KHJaune);
+				if (Matrice[i][a] == KEmpty) Couleur(KMagenta);
 
-				cout << Mat[i][a];
+				cout << Matrice[i][a];
 				Couleur(KReset);
 
 			}
 			cout << endl;
 		}
-	}//ShowMatrix
+	}//ShowMatricerix
 
 	// WIN CHECK - WIN STAT
 
@@ -287,12 +298,12 @@ namespace {
 		return (NbrTour % 2 == 0 ? FirstPlayer : SecondPlayer);
 	} //GetWinner()
 
-	void DisplayWin(const unsigned &tour, const bool &isia = true) {
+	void DisplayWin(const unsigned &Tour, const bool &IsBot = true) {
 
-		SPlayer winner = GetWinner(FirstPlayer, SecondPlayer, tour);
+		SPlayer winner = GetWinner(FirstPlayer, SecondPlayer, Tour);
 		unsigned margin(3);
 
-		if (isia) {
+		if (IsBot) {
 
 			ClearScreen();
 			cout << setw(round(size.ws_col / 2) - 13);
@@ -317,28 +328,28 @@ namespace {
 	SBonus InitBonus(const unsigned largeur, const unsigned hauteur, const unsigned
 		AxeX, const unsigned AxeY, const char Token) {
 
-		SBonus bonus;
+		SBonus Bonus;
 
-		bonus.m_sizeX = largeur;
-		bonus.m_sizeY = hauteur;
-		bonus.m_X = AxeX;
-		bonus.m_Y = AxeY;
-		bonus.m_token = Token;
+		Bonus.m_sizeX = largeur;
+		Bonus.m_sizeY = hauteur;
+		Bonus.m_X = AxeX;
+		Bonus.m_Y = AxeY;
+		Bonus.m_token = Token;
 
-		return bonus;
+		return Bonus;
 	}//InitBonus()
 
-	void PutBonus(CMatrix & Matrice, SBonus & Bonus) {
+	void PutBonus(CMatricerix & Matrice, SBonus & Bonus) {
 		if ((Bonus.m_Y > 1 && Bonus.m_X > 1) && (Bonus.m_Y < KSizeY - 1 && Bonus.m_X < KSizeX - 1))
 			Matrice[Bonus.m_Y][Bonus.m_X] = Bonus.m_token;
-	}//PUtBonus()
+	}//PutBonus()
 
-	void GetBonus(CMatrix & Mat, SPlayer & Player) {
+	void GetBonus(CMatricerix & Matrice, SPlayer & Player) {
 		for (unsigned i(Player.m_Y); i < Player.m_Y + Player.m_sizeY; ++i) {
 			for (unsigned j(Player.m_X); j < Player.m_X + Player.m_sizeX; ++j) {
 				//Début de la détéction des bonus
 
-				if (Mat[i][j] == KBonusX) {
+				if (Matrice[i][j] == KBonusX) {
 					if (Player.m_X == 1) KLog += "\n\rVous avez déjà prit un bonus de ce type !";
 					++Player.m_sizeX;
 					++Player.m_sizeY;
@@ -346,7 +357,7 @@ namespace {
 					Player.m_score += 25;
 					KLog += "\n\r\n\rCe bonus vous a fait GAGNER 25 en score !";
 				}
-				if (Mat[i][j] == KBonusY) {
+				if (Matrice[i][j] == KBonusY) {
 
 
 					KLog += "MOI JE FAIS RIEN";
@@ -355,7 +366,7 @@ namespace {
 
 
 				}
-				if (Mat[i][j] == KBonusZ) {
+				if (Matrice[i][j] == KBonusZ) {
 
 
 					KLog += "MOI JE FAIS RIEN";
@@ -367,29 +378,29 @@ namespace {
 				//Fin de la détéction des bonus
 				for (unsigned i(Player.m_Y); i < Player.m_Y + Player.m_sizeY; ++i)
 					for (unsigned j(Player.m_X); j < Player.m_X + Player.m_sizeX; ++j)
-						Mat[i][j] = Player.m_token;
+						Matrice[i][j] = Player.m_token;
 			}
 		}
 	}//GetBonus()
 
 	// OBSTACLES
 
-	bool IsSurrounded(CMatrix & Map, SPlayer & Player) {
+	bool IsSurrounded(CMatricerix & Map, SPlayer & Player) {
 		return (Map[Player.m_X + 1][Player.m_Y + 1] == KObstacle);
 	}//IsSurrounded()
 
 	SObstacle InitObstacle(const unsigned
 		AxeX, const unsigned AxeY, const char Token) {
 
-		SObstacle obstacle;
+		SObstacle Obstacle;
 
-		obstacle.m_X = AxeX;
-		obstacle.m_Y = AxeY;
-		obstacle.m_token = Token;
-		return obstacle;
+		Obstacle.m_X = AxeX;
+		Obstacle.m_Y = AxeY;
+		Obstacle.m_token = Token;
+		return Obstacle;
 	} //InitObstacle()
 
-	void PutObstacle(CMatrix & Matrice, SObstacle & Obstacle) {
+	void PutObstacle(CMatricerix & Matrice, SObstacle & Obstacle) {
 
 		for (int i = -1; i < 1; i++)
 
@@ -401,22 +412,22 @@ namespace {
 			}
 	} //PutObstacle()
 
-	void GenerateRandomObstacles(CMatrix & Matrice, const SObstacle & Obstacle, const unsigned & SizeObs) {
-		SObstacle obstacle = Obstacle;
+	void GenerateRandomObstacles(CMatricerix & Matrice, const SObstacle & Obstacle, const unsigned & Totalsize) {
+		SObstacle NewObstacle = Obstacle;
 
-		vector <unsigned> randomValues;
+		vector <unsigned> Randomvalues;
 
-		for (unsigned i(0); i < SizeObs; ++i) randomValues.push_back(Rand(1, 2));
+		for (unsigned i(0); i < Totalsize; ++i) Randomvalues.push_back(Rand(1, 2));
 
-		for (unsigned i(0); i < SizeObs; ++i) {
+		for (unsigned i(0); i < Totalsize; ++i) {
 
-			if (1 == randomValues[i]) {
-				++obstacle.m_Y;
-				PutObstacle(Matrice, obstacle);
+			if (1 == Randomvalues[i]) {
+				++NewObstacle.m_Y;
+				PutObstacle(Matrice, NewObstacle);
 			}
-			else if (2 == randomValues[i]) {
-				++obstacle.m_X;
-				PutObstacle(Matrice, obstacle);
+			else if (2 == Randomvalues[i]) {
+				++NewObstacle.m_X;
+				PutObstacle(Matrice, NewObstacle);
 			}
 		}
 	} //GenerateRandomObstacles()
@@ -462,9 +473,9 @@ namespace {
 		return false;
 	}//IsMovementForbidden()
 
-	void GenerateStaticObject(CMatrix & Map, unsigned &Difficulty) {
+	void GenerateStaticObject(CMatricerix & Map, unsigned & Difficulty) {
 
-		SObstacle tmpObs;
+		SObstacle Tmpobs;
 		SBonus tmpBonus;
 		int rndBX, rndBY;
 
@@ -578,7 +589,7 @@ namespace {
 		return player;
 	}//InitPlayer()
 
-	void MovePlayer(CMatrix & Mat, char Move, SPlayer & player) {
+	void MovePlayer(CMatricerix & Matrice, char Move, SPlayer & player) {
 
 		unsigned additional(0);
 		if (IsMovementForbidden(player, Move)) return;
@@ -590,10 +601,10 @@ namespace {
 			{
 				player.m_Y -= 1;
 
-				GetBonus(Mat, player);
+				GetBonus(Matrice, player);
 				for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i) {
-					Mat[player.m_Y + player.m_sizeY][i] = KEmpty;
-					Mat[player.m_Y][i] = player.m_token;
+					Matrice[player.m_Y + player.m_sizeY][i] = KEmpty;
+					Matrice[player.m_Y][i] = player.m_token;
 
 				}
 			}
@@ -602,13 +613,13 @@ namespace {
 
 		else if (Move == KBot) {
 
-			if (player.m_Y + player.m_sizeY < Mat.size() - 1) {
+			if (player.m_Y + player.m_sizeY < Matrice.size() - 1) {
 				player.m_Y += 1;
-				GetBonus(Mat, player);
+				GetBonus(Matrice, player);
 
 				for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i) {
-					Mat[player.m_Y - 1][i] = KEmpty;
-					Mat[player.m_Y + player.m_sizeY - 1][i] = player.m_token;
+					Matrice[player.m_Y - 1][i] = KEmpty;
+					Matrice[player.m_Y + player.m_sizeY - 1][i] = player.m_token;
 
 				}
 			}
@@ -618,30 +629,30 @@ namespace {
 			if (player.m_X + player.m_sizeY > 2 + additional)
 			{
 				player.m_X -= 1;
-				GetBonus(Mat, player);
+				GetBonus(Matrice, player);
 
 				for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i) {
-					Mat[i][player.m_X + player.m_sizeX] = KEmpty;
-					Mat[i][player.m_X] = player.m_token;
+					Matrice[i][player.m_X + player.m_sizeX] = KEmpty;
+					Matrice[i][player.m_X] = player.m_token;
 				}
 			}
 		}
 
 		else if (Move == KRight) {
-			if (player.m_X + player.m_sizeX < Mat[0].size() - 1)
+			if (player.m_X + player.m_sizeX < Matrice[0].size() - 1)
 			{
 				player.m_X += 1;
-				GetBonus(Mat, player);
+				GetBonus(Matrice, player);
 
 				for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i) {
-					Mat[i][player.m_X - 1] = KEmpty;
-					Mat[i][player.m_X + player.m_sizeX - 1] = player.m_token;
+					Matrice[i][player.m_X - 1] = KEmpty;
+					Matrice[i][player.m_X + player.m_sizeX - 1] = player.m_token;
 				}
 			}
 		}
 	}//MovePlayer()
 
-	void KeyEvent(const int & ch, CMatrix & Map, SPlayer & player) {
+	void KeyEvent(const int & ch, CMatricerix & Map, SPlayer & player) {
 
 		if (ch == KTop) MovePlayer(Map, KTop, player);
 		else if (ch == KBot) MovePlayer(Map, KBot, player);
@@ -663,7 +674,7 @@ namespace {
 
 	//IA
 
-	void MoveBot(int & ch, CMatrix & Map, const unsigned & tour) {
+	void MoveBot(int & ch, CMatricerix & Map, const unsigned & tour) {
 
 
 		if (tour % 2 == 1) {
@@ -696,21 +707,21 @@ namespace {
 
 	void DisplayMulti() {
 
-		unsigned NbRnds = GetTourMax();
+		unsigned Nbround = GetTourMax();
 		int ch;
 
 		FirstPlayer = InitPlayer(1, 1, 1, 1, KFirstPlayer);
 		SecondPlayer = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, KSecondPlayer);
-		CMatrix Map = InitMat(KSizeX + 1, KSizeY + 1, FirstPlayer, SecondPlayer); // +1 due à la bordure de '#' le long de la matrice
+		CMatricerix Map = InitMatrice(KSizeX + 1, KSizeY + 1, FirstPlayer, SecondPlayer); // +1 due à la bordure de '#' le long de la Matrice
 
 		GenerateStaticObject(Map, KDifficult);
 
 		initscr();
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
 
-		ShowMatrix(Map);
+		ShowMatricerix(Map);
 
-		for (unsigned i(0); i < NbRnds * 2; ++i) {
+		for (unsigned i(0); i < Nbround * 2; ++i) {
 
 			SPlayer &actualplayer = (i % 2 == 0 ? FirstPlayer : SecondPlayer);
 			const vector <string> playtitle = {
@@ -724,7 +735,7 @@ namespace {
 				"\n"
 			};
 			for (string Lines : playtitle) cout << endl << Lines;
-			ShowMatrix(Map, false);
+			ShowMatricerix(Map, false);
 			InitCurses();
 
 			DisplayInfos(actualplayer);
@@ -762,7 +773,7 @@ namespace {
 	void DisplayLog() {
 		if (KLog != "") {
 			Couleur(KRouge, KHGris);
-			cout << endl << "[!] Dernière information : " << KLog << "\n\r";
+			cout << endl << "[!] Dernière inforMatriceion : " << KLog << "\n\r";
 			KLog = "";
 		}
 		Couleur(KReset);
@@ -904,23 +915,23 @@ namespace {
 
 		/*TODO IA SOLO*/
 
-		unsigned NbRnds = GetTourMax();
+		unsigned Nbround = GetTourMax();
 		int ch;
 		unsigned tourIA, tour(0);
 
 
 		FirstPlayer = InitPlayer(1, 1, 1, 1, KFirstPlayer);
 		SecondPlayer = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, KSecondPlayer); //le robot
-		CMatrix Map = InitMat(KSizeX + 1, KSizeY + 1, FirstPlayer, SecondPlayer); // +1 due à la bordure de '#' le long de la matrice
+		CMatricerix Map = InitMatrice(KSizeX + 1, KSizeY + 1, FirstPlayer, SecondPlayer); // +1 due à la bordure de '#' le long de la Matrice
 
 		GenerateStaticObject(Map, KDifficult);
 
 		initscr();
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
 
-		ShowMatrix(Map);
+		ShowMatricerix(Map);
 
-		for (; tour < NbRnds * 2; ++tour) {
+		for (; tour < Nbround * 2; ++tour) {
 			/*FirstPlayer = User. SecondPlayer = IA.*/
 			SPlayer &actualplayer = (tour % 2 == 0 ? FirstPlayer : SecondPlayer);
 
@@ -935,7 +946,7 @@ namespace {
 				"\n"
 			};
 			for (string Lines : playtitle) cout << endl << Lines;
-			ShowMatrix(Map, false);
+			ShowMatricerix(Map, false);
 
 			InitCurses();
 
