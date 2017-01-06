@@ -17,6 +17,7 @@ using namespace std;
 /*
 
 TODO :
+	- Historique des déplacements
 	- Changer le nom des variables en uppercase
 	- Ajouter un timer
 	- Supprimer les headers supperflus
