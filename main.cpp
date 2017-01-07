@@ -1,35 +1,38 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <string.h>
-#include <utility>
-#include <stdlib.h>   
-#include <time.h>
-#include <random>
-#include <ncurses.h>
-#include <iomanip>
-#include <sys/ioctl.h>
-#include <stdio.h>
-#include <unistd.h>
+#include <iostream>		// cout() ...
+#include <vector>		// vector<AType> ...
+#include <random>		// random_device ...
+#include <iomanip>		// setwp() ...
+#include <ncurses.h>	// initscr() ...
+#include <sys/ioctl.h>	// winsize ...
+#include <unistd.h>		// ioctl() ...
+
+/* OPTIONAL INCLUDE
+	#include <string>
+	#include <string.h>
+	#include <utility>
+*/
 
 using namespace std;
 
 /*
 
 TODO :
-	- Historique des déplacements
-	- Changer le nom des variables en uppercase
-	- Ajouter un timer
-	- Supprimer les headers supperflus
-	- Régler les problèmes de déplacement du joueur (?)
-	- Utiliser les fichiers externes pour l'ASCII-Art dans les Display
-	- Enlever le "K" pour les non-constantes variables
+
+- Historique des déplacements
+- Ajouter un timer
+- Utiliser les fichiers externes pour l'ASCII-Art dans les Display
+
 */
 
-//Compilation préconisée : rm main.out; g++ -std=c++11  main.cpp -o main.out -Wall -ltinfo -lncurses;  ./main.out
+/*
+
+Compilation préconisée : rm main.out; g++ -std=c++11  main.cpp -o main.out -Wall -ltinfo -lncurses;  ./main.out
+Package à installer : libncurses5-dev (sudo apt-get install libncurses5-dev)
+
+*/
 
 typedef vector <char> CVLine;
-typedef vector <CVLine> CMatricerix;
+typedef vector <CVLine> CMatrice;
 
 typedef struct {
 	unsigned m_X;
@@ -56,20 +59,8 @@ typedef struct {
 
 
 namespace {
-	/* VARIABLES DE CONFIGURATION */
-	struct winsize size;
 
-	vector <SObstacle> VObstacle;
-	vector <string> VOptionsName;
-	vector <string> VOptionValue;
-	string KLog;
-
-	unsigned KSizeY;
-	unsigned KSizeX;
-	unsigned KDelay;
-	unsigned KDifficult;
-
-	/*CoulEURS BASIQUE*/
+	/*COULEURS BASIQUE*/
 	const string KReset("0");
 	const string KNoir("30");
 	const string KRouge("31");
@@ -89,31 +80,44 @@ namespace {
 	const string KHCyan("46");
 	const string KHGris("47");
 
-	char KBonusY;
-	char KBonusX;
-	char KBonusZ;
-	char KLeft;
-	char KTop;
-	char KBot;
-	char KRight;
-	char KEmpty;
-	char KObstacle;
-	char KBorderLine;
-	char KBorderColumn;
-	char KFirstPlayer;
-	char KSecondPlayer;
+	/* VARIABLES DE CONFIGURATION */
+	struct winsize size;
 
-	bool KShowRules;
+	vector <SObstacle> VObstacle;
+	vector <string> VOptionsName;
+	vector <string> VOptionValue;
+	string SLog;
 
-	SPlayer FirstPlayer;
-	SPlayer SecondPlayer;
+	bool BShowRules;
+
+	unsigned KSizeY;
+	unsigned KSizeX;
+	unsigned KDelay;
+	unsigned KDifficult;
+
+	char BonusY;
+	char BonusX;
+	char BonusZ;
+	char CMouvLeft;
+	char CMouvTop;
+	char CMouvBot;
+	char CMouvRight;
+	char CaseEmpty;
+	char CaseObstacle;
+	char CaseBorder;
+	char TokenPlayerX;
+	char TokenPlayerY;
+
+	SPlayer PlayerX;
+	SPlayer PlayerY;
 
 	void DisplayMenu();
 	void DisplaySoloIA();
-	void DisplayInfos(const SPlayer & player);
+	void DisplayInfos(const SPlayer & Player);
 
 
-	//SCREEN 
+	//SCREEN - INITS
+
 	void Couleur(const string & Coul, const string Hightlight = "") {
 		if (Hightlight == "") cout << "\033[" << Coul << "m";
 		else cout << "\033[34m\033[" << Hightlight << "m";
@@ -167,22 +171,21 @@ namespace {
 		KSizeY = 10;
 		KDelay = 10;
 		KDifficult = 1;
-		KBonusX = 'W';
-		KBonusY = 'V';
-		KBonusZ = 'U';
-		KLeft = 'q';
-		KTop = 'z';
-		KBot = 's';
-		KRight = 'd';
-		KEmpty = '.';
-		KObstacle = '#';
-		KBorderLine = '#';
-		KBorderColumn = '#';
-		KFirstPlayer = 'X';
-		KSecondPlayer = 'O';
-		KShowRules = true;
+		BonusX = 'W';
+		BonusY = 'V';
+		BonusZ = 'U';
+		CMouvLeft = 'q';
+		CMouvTop = 'z';
+		CMouvBot = 's';
+		CMouvRight = 'd';
+		CaseEmpty = '.';
+		CaseObstacle = '#';
+		CaseBorder = '#';
+		TokenPlayerX = 'X';
+		TokenPlayerY = 'O';
+		BShowRules = true;
 
-		VOptionsName = { "KEmpty", "KFirstPlayer", "KSecondPlayer", "KSizeX", "KSizeY", "KDelay", "KDifficult", "KShowRules" };
+		VOptionsName = { "CaseEmpty", "TokenPlayerX", "TokenPlayerY", "KSizeX", "KSizeY", "KDelay", "KDifficult", "BShowRules" };
 
 		VOptionValue = { ".",  "X" ,"O", "10", "10", "10", "2", "true" };
 
@@ -199,54 +202,53 @@ namespace {
 			if (VOptionsName[i] == Name) VOptionValue[i] = Value;
 
 
-		if ("KLeft" == Name) KLeft = Valuetochar[0];
-		else if ("KTop" == Name) KTop = Valuetochar[0];
-		else if ("KBot" == Name) KBot = Valuetochar[0];
-		else if ("KRight" == Name) KRight = Valuetochar[0];
-		else if ("KFirstPlayer" == Name) KFirstPlayer = Valuetochar[0];
-		else if ("KEmpty" == Name) KEmpty = Valuetochar[0];
-		else if ("KSecondPlayer" == Name) KSecondPlayer = Valuetochar[0];
+		if ("CMouvLeft" == Name) CMouvLeft = Valuetochar[0];
+		else if ("CMouvTop" == Name) CMouvTop = Valuetochar[0];
+		else if ("CMouvBot" == Name) CMouvBot = Valuetochar[0];
+		else if ("CMouvRight" == Name) CMouvRight = Valuetochar[0];
+		else if ("TokenPlayerX" == Name) TokenPlayerX = Valuetochar[0];
+		else if ("CaseEmpty" == Name) CaseEmpty = Valuetochar[0];
+		else if ("TokenPlayerY" == Name) TokenPlayerY = Valuetochar[0];
 		else if ("KSizeX" == Name) KSizeX = stoul(Value);
 		else if ("KSizeY" == Name) KSizeY = stoul(Value);
 		else if ("KDelay" == Name) KDelay = stoul(Value);
 		else if ("KDifficult" == Name) KDifficult = stoul(Value);
-		else if ("KShowRules" == Name) KShowRules = StrToBool(Value);
+		else if ("BShowRules" == Name) BShowRules = StrToBool(Value);
 
 
 	} //SetConfig();
+	
+	// MATRICE
 
-
-	// Matrice
-
-	CMatricerix InitMatrice(unsigned NbLine, unsigned NbColumn, SPlayer & FirstPlayer, SPlayer & SecondPlayer, bool ShowBorder = true) {
-		CMatricerix Matrice;
+	CMatrice InitMatrice(unsigned NbLine, unsigned NbColumn, SPlayer & PlayerX, SPlayer & PlayerY, bool ShowBorder = true) {
+		CMatrice Matrice;
 		Matrice.resize(NbLine);
 
 		for (unsigned i(0); i < NbLine; ++i)
 			for (unsigned j(0); j < NbColumn; ++j)
-				Matrice[i].push_back(KEmpty);
+				Matrice[i].push_back(CaseEmpty);
 
 
 
-		for (unsigned i(FirstPlayer.m_Y); i < FirstPlayer.m_Y + FirstPlayer.m_sizeY; ++i)
-			for (unsigned j(FirstPlayer.m_X); j < FirstPlayer.m_X + FirstPlayer.m_sizeX; ++j)
-				Matrice[i][j] = FirstPlayer.m_token;
+		for (unsigned i(PlayerX.m_Y); i < PlayerX.m_Y + PlayerX.m_sizeY; ++i)
+			for (unsigned j(PlayerX.m_X); j < PlayerX.m_X + PlayerX.m_sizeX; ++j)
+				Matrice[i][j] = PlayerX.m_token;
 
 
-		for (unsigned i(SecondPlayer.m_Y); i < SecondPlayer.m_Y + SecondPlayer.m_sizeY; ++i)
-			for (unsigned j(SecondPlayer.m_X); j < SecondPlayer.m_X + SecondPlayer.m_sizeX; ++j)
-				Matrice[i][j] = SecondPlayer.m_token;
+		for (unsigned i(PlayerY.m_Y); i < PlayerY.m_Y + PlayerY.m_sizeY; ++i)
+			for (unsigned j(PlayerY.m_X); j < PlayerY.m_X + PlayerY.m_sizeX; ++j)
+				Matrice[i][j] = PlayerY.m_token;
 
 		if (ShowBorder) {
 			for (unsigned i(0); i < NbLine; ++i) {
 
-				Matrice[i][0] = KBorderColumn;
-				Matrice[i][NbColumn - 1] = KBorderColumn;
+				Matrice[i][0] = CaseBorder;
+				Matrice[i][NbColumn - 1] = CaseBorder;
 			}
 
 			for (unsigned i(0); i < NbColumn; ++i) {
-				Matrice[0][i] = KBorderLine;
-				Matrice[NbLine - 1][i] = KBorderLine;
+				Matrice[0][i] = CaseBorder;
+				Matrice[NbLine - 1][i] = CaseBorder;
 			}
 
 		}
@@ -255,7 +257,7 @@ namespace {
 		return Matrice;
 	} //InitMatrice()
 
-	void ShowMatricerix(const CMatricerix & Matrice, const bool Clear = true) {
+	void ShowMatricerix(const CMatrice & Matrice, const bool Clear = true) {
 
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
 
@@ -270,13 +272,13 @@ namespace {
 
 				/*GESTION DES CoulEURS*/
 
-				if (Matrice[i][a] == KObstacle) Couleur(KNoir);
-				if (Matrice[i][a] == KBonusX) Couleur(KVert, KHVert);
-				if (Matrice[i][a] == KBonusY) Couleur(KVert, KHVert);
-				if (Matrice[i][a] == KBonusZ) Couleur(KVert, KHVert);
-				if (Matrice[i][a] == KFirstPlayer) Couleur(KRouge, KHCyan);
-				if (Matrice[i][a] == KSecondPlayer)	Couleur(KBleu, KHJaune);
-				if (Matrice[i][a] == KEmpty) Couleur(KMagenta);
+				if (Matrice[i][a] == CaseObstacle) Couleur(KNoir);
+				if (Matrice[i][a] == BonusX) Couleur(KVert, KHVert);
+				if (Matrice[i][a] == BonusY) Couleur(KVert, KHVert);
+				if (Matrice[i][a] == BonusZ) Couleur(KVert, KHVert);
+				if (Matrice[i][a] == TokenPlayerX) Couleur(KRouge, KHCyan);
+				if (Matrice[i][a] == TokenPlayerY)	Couleur(KBleu, KHJaune);
+				if (Matrice[i][a] == CaseEmpty) Couleur(KMagenta);
 
 				cout << Matrice[i][a];
 				Couleur(KReset);
@@ -288,20 +290,20 @@ namespace {
 
 	// WIN CHECK - WIN STAT
 
-	bool CheckIfWin(SPlayer & FirstPlayer, SPlayer & SecondPlayer) {
-		return !((FirstPlayer.m_X > SecondPlayer.m_X + SecondPlayer.m_sizeX - 1) ||
-			(FirstPlayer.m_X + FirstPlayer.m_sizeX - 1 < SecondPlayer.m_X) ||
-			(SecondPlayer.m_Y > FirstPlayer.m_Y + FirstPlayer.m_sizeY - 1) ||
-			(SecondPlayer.m_Y + SecondPlayer.m_sizeY - 1 < FirstPlayer.m_Y));
+	bool CheckIfWin(SPlayer & PlayerX, SPlayer & PlayerY) {
+		return !((PlayerX.m_X > PlayerY.m_X + PlayerY.m_sizeX - 1) ||
+			(PlayerX.m_X + PlayerX.m_sizeX - 1 < PlayerY.m_X) ||
+			(PlayerY.m_Y > PlayerX.m_Y + PlayerX.m_sizeY - 1) ||
+			(PlayerY.m_Y + PlayerY.m_sizeY - 1 < PlayerX.m_Y));
 	} //CheckIfWin()
 
-	SPlayer GetWinner(const SPlayer& FirstPlayer, const SPlayer &SecondPlayer, const unsigned & NbrTour) {
-		return (NbrTour % 2 == 0 ? FirstPlayer : SecondPlayer);
+	SPlayer GetWinner(const SPlayer& PlayerX, const SPlayer &PlayerY, const unsigned & NbrTour) {
+		return (NbrTour % 2 == 0 ? PlayerX : PlayerY);
 	} //GetWinner()
 
 	void DisplayWin(const unsigned &Tour, const bool &IsBot = true) {
 
-		SPlayer winner = GetWinner(FirstPlayer, SecondPlayer, Tour);
+		SPlayer winner = GetWinner(PlayerX, PlayerY, Tour);
 		unsigned margin(3);
 
 		if (IsBot) {
@@ -326,13 +328,13 @@ namespace {
 
 	// BONUS
 
-	SBonus InitBonus(const unsigned largeur, const unsigned hauteur, const unsigned
+	SBonus InitBonus(const unsigned Largeur, const unsigned Hauteur, const unsigned
 		AxeX, const unsigned AxeY, const char Token) {
 
 		SBonus Bonus;
 
-		Bonus.m_sizeX = largeur;
-		Bonus.m_sizeY = hauteur;
+		Bonus.m_sizeX = Largeur;
+		Bonus.m_sizeY = Hauteur;
 		Bonus.m_X = AxeX;
 		Bonus.m_Y = AxeY;
 		Bonus.m_token = Token;
@@ -340,39 +342,39 @@ namespace {
 		return Bonus;
 	}//InitBonus()
 
-	void PutBonus(CMatricerix & Matrice, SBonus & Bonus) {
+	void PutBonus(CMatrice & Matrice, SBonus & Bonus) {
 		if ((Bonus.m_Y > 1 && Bonus.m_X > 1) && (Bonus.m_Y < KSizeY - 1 && Bonus.m_X < KSizeX - 1))
 			Matrice[Bonus.m_Y][Bonus.m_X] = Bonus.m_token;
 	}//PutBonus()
 
-	void GetBonus(CMatricerix & Matrice, SPlayer & Player) {
+	void GetBonus(CMatrice & Matrice, SPlayer & Player) {
 		for (unsigned i(Player.m_Y); i < Player.m_Y + Player.m_sizeY; ++i) {
 			for (unsigned j(Player.m_X); j < Player.m_X + Player.m_sizeX; ++j) {
 				//Début de la détéction des bonus
 
-				if (Matrice[i][j] == KBonusX) {
-					if (Player.m_X == 1) KLog += "\n\rVous avez déjà prit un bonus de ce type !";
+				if (Matrice[i][j] == BonusX) {
+					if (Player.m_X == 1) SLog += "\n\rVous avez déjà prit un bonus de ce type !";
 					++Player.m_sizeX;
 					++Player.m_sizeY;
-					KLog += "\n\rCe bonus vous fait augmenter de taille. \n\rIl vous permet aussi de traverser les obstacles";
+					SLog += "\n\rCe bonus vous fait augmenter de taille. \n\rIl vous permet aussi de traverser les obstacles";
 					Player.m_score += 25;
-					KLog += "\n\r\n\rCe bonus vous a fait GAGNER 25 en score !";
+					SLog += "\n\r\n\rCe bonus vous a fait GAGNER 25 en score !";
 				}
-				if (Matrice[i][j] == KBonusY) {
+				if (Matrice[i][j] == BonusY) {
 
 
-					KLog += "MOI JE FAIS RIEN";
+					SLog += "MOI JE FAIS RIEN";
 					Player.m_score += 15;
-					KLog += "\n\r\n\rCe bonus vous a fait GAGNER 15 en score !";
+					SLog += "\n\r\n\rCe bonus vous a fait GAGNER 15 en score !";
 
 
 				}
-				if (Matrice[i][j] == KBonusZ) {
+				if (Matrice[i][j] == BonusZ) {
 
 
-					KLog += "MOI JE FAIS RIEN";
+					SLog += "MOI JE FAIS RIEN";
 					Player.m_score += 10;
-					KLog += "\n\r\n\rCe bonus vous a fait GAGNER 10 en score !";
+					SLog += "\n\r\n\rCe bonus vous a fait GAGNER 10 en score !";
 
 
 				}
@@ -386,8 +388,8 @@ namespace {
 
 	// OBSTACLES
 
-	bool IsSurrounded(CMatricerix & Map, SPlayer & Player) {
-		return (Map[Player.m_X + 1][Player.m_Y + 1] == KObstacle);
+	bool IsSurrounded(CMatrice & Map, SPlayer & Player) {
+		return (Map[Player.m_X + 1][Player.m_Y + 1] == CaseObstacle);
 	}//IsSurrounded()
 
 	SObstacle InitObstacle(const unsigned
@@ -401,7 +403,7 @@ namespace {
 		return Obstacle;
 	} //InitObstacle()
 
-	void PutObstacle(CMatricerix & Matrice, SObstacle & Obstacle) {
+	void PutObstacle(CMatrice & Matrice, SObstacle & Obstacle) {
 
 		for (int i = -1; i < 1; i++)
 
@@ -413,7 +415,7 @@ namespace {
 			}
 	} //PutObstacle()
 
-	void GenerateRandomObstacles(CMatricerix & Matrice, const SObstacle & Obstacle, const unsigned & Totalsize) {
+	void GenerateRandomObstacles(CMatrice & Matrice, const SObstacle & Obstacle, const unsigned & Totalsize) {
 		SObstacle NewObstacle = Obstacle;
 
 		vector <unsigned> Randomvalues;
@@ -438,34 +440,34 @@ namespace {
 
 		for (unsigned i(0); i < VObstacle.size(); ++i) {
 			if (VObstacle[i].m_X == Player.m_X  &&
-				VObstacle[i].m_Y == Player.m_Y - 1 && Movement == KTop) {
+				VObstacle[i].m_Y == Player.m_Y - 1 && Movement == CMouvTop) {
 
-				KLog += "\n\r\n\r Ce bonus vous a fait PERDRE 8 en score !";
+				SLog += "\n\r\n\r Ce bonus vous a fait PERDRE 8 en score !";
 				Player.m_score -= 8;
 
 				return true;
 			}
 			else if (VObstacle[i].m_X == Player.m_X  &&
-				VObstacle[i].m_Y == Player.m_Y + 1 && Movement == KBot) {
+				VObstacle[i].m_Y == Player.m_Y + 1 && Movement == CMouvBot) {
 
-				KLog += "\n\r\n\r Ce bonus vous a fait PERDRE 8 en score !";
+				SLog += "\n\r\n\r Ce bonus vous a fait PERDRE 8 en score !";
 				Player.m_score -= 8;
 
 				return true;
 			}
 			else if (VObstacle[i].m_X == Player.m_X - 1 &&
-				VObstacle[i].m_Y == Player.m_Y  && Movement == KLeft) {
+				VObstacle[i].m_Y == Player.m_Y  && Movement == CMouvLeft) {
 
-				KLog += "\n\r\n\r Ce bonus vous a fait PERDRE 8 en score !";
+				SLog += "\n\r\n\r Ce bonus vous a fait PERDRE 8 en score !";
 				Player.m_score -= 8;
 
 				return true;
 			}
 
 			else if (VObstacle[i].m_X == Player.m_X + 1 &&
-				VObstacle[i].m_Y == Player.m_Y  && Movement == KRight) {
+				VObstacle[i].m_Y == Player.m_Y  && Movement == CMouvRight) {
 
-				KLog += "\n\r\n\r Ce bonus vous a fait PERDRE 8 en score !";
+				SLog += "\n\r\n\r Ce bonus vous a fait PERDRE 8 en score !";
 				Player.m_score -= 8;
 
 				return true;
@@ -474,95 +476,95 @@ namespace {
 		return false;
 	}//IsMovementForbidden()
 
-	void GenerateStaticObject(CMatricerix & Map, unsigned & Difficulty) {
+	void GenerateStaticObject(CMatrice & Map, unsigned & Difficulty) {
 
-		SObstacle Tmpobs;
-		SBonus tmpBonus;
-		int rndBX, rndBY;
+		SObstacle TmpObs;
+		SBonus TmpBonus;
+		int RndBX, rndBY;
 
-		unsigned nbobs, nbonus, choix;
+		unsigned NbObs, NbBonus, Choix;
 
 		if (1 == Difficulty) {/*EASY*/
-			nbobs = 6;
-			nbonus = 5;
+			NbObs = 6;
+			NbBonus = 5;
 
-			for (unsigned i(0); i < nbobs; ++i) {
+			for (unsigned i(0); i < NbObs; ++i) {
 
-				int maxX = round((KSizeX / 2)) + Rand(1, 2);
-				int maxY = round((KSizeY / 2)) - Rand(0, 1);
+				int MaxX = round((KSizeX / 2)) + Rand(1, 2);
+				int MaxY = round((KSizeY / 2)) - Rand(0, 1);
 
-				int rndX = round(Rand(2, maxX));
-				int rndY = round(Rand(2, maxY));
+				int RndX = round(Rand(2, MaxX));
+				int RndY = round(Rand(2, MaxY));
 
-				tmpObs = InitObstacle(rndX, rndY, KObstacle);
+				TmpObs = InitObstacle(RndX, RndY, CaseObstacle);
 
-				if ((FirstPlayer.m_X == tmpObs.m_X && FirstPlayer.m_Y == tmpObs.m_Y)
-					&& SecondPlayer.m_X == tmpObs.m_X && SecondPlayer.m_Y == tmpObs.m_Y) {
+				if ((PlayerX.m_X == TmpObs.m_X && PlayerX.m_Y == TmpObs.m_Y)
+					&& PlayerY.m_X == TmpObs.m_X && PlayerY.m_Y == TmpObs.m_Y) {
 					--i;
 
 					continue;
 				}
 
 				else {
-					if (!(IsSurrounded(Map, FirstPlayer)) || !(IsSurrounded(Map, SecondPlayer)))
-						GenerateRandomObstacles(Map, tmpObs, Rand(1, 3));
+					if (!(IsSurrounded(Map, PlayerX)) || !(IsSurrounded(Map, PlayerY)))
+						GenerateRandomObstacles(Map, TmpObs, Rand(1, 3));
 				}
 			}
 
-			for (unsigned i(0); i < nbonus; ++i) {
-				choix = Rand(1, 3);
-				rndBX = Rand(round(KSizeX - round(KSizeX / 3)) - Rand(1, 3), round(KSizeX - round(KSizeX / 5)) + Rand(1, 3));
+			for (unsigned i(0); i < NbBonus; ++i) {
+				Choix = Rand(1, 3);
+				RndBX = Rand(round(KSizeX - round(KSizeX / 3)) - Rand(1, 3), round(KSizeX - round(KSizeX / 5)) + Rand(1, 3));
 				rndBY = Rand(round(KSizeY - round(KSizeY / 3)) - Rand(1, 3), round(KSizeY - round(KSizeY / 5)) + Rand(1, 3));
 
-				if (choix == 1) tmpBonus = InitBonus(1, 1, rndBX - 1, rndBY, KBonusY);
-				else if (choix == 2) tmpBonus = InitBonus(1, 1, rndBX - 1, rndBY, KBonusX);
-				else if (choix == 3) tmpBonus = InitBonus(1, 1, rndBX - 1, rndBY, KBonusZ);
+				if (Choix == 1) TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusY);
+				else if (Choix == 2) TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusX);
+				else if (Choix == 3) TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusZ);
 
-				PutBonus(Map, tmpBonus);
+				PutBonus(Map, TmpBonus);
 			}
 		}
 
 		else if (2 == Difficulty) { /*HARD*/
-			nbobs = Rand(7, 9);
-			nbonus = 4;
+			NbObs = Rand(7, 9);
+			NbBonus = 4;
 
-			for (unsigned i(0); i < nbobs; ++i) {
+			for (unsigned i(0); i < NbObs; ++i) {
 
-				int minX = round((KSizeX / 2)) - Rand(1, 3);
-				int maxX = round((KSizeX / 2)) + Rand(1, 2);
-				int minY = round((KSizeY / 2)) - Rand(3, 4);
-				int maxY = round((KSizeY / 2)) + Rand(2, 3);
+				unsigned MinX = round((KSizeX / 2)) - Rand(1, 3);
+				unsigned MaxX = round((KSizeX / 2)) + Rand(1, 2);
+				unsigned MinY = round((KSizeY / 2)) - Rand(3, 4);
+				unsigned MaxY = round((KSizeY / 2)) + Rand(2, 3);
 
-				int rndX = round(Rand(minX, maxX));
-				int rndY = round(Rand(minY, maxY));
+				unsigned RndX = round(Rand(MinX, MaxX));
+				unsigned RndY = round(Rand(MinY, MaxY));
 
-				tmpObs = InitObstacle(rndX, rndY, KObstacle);
+				TmpObs = InitObstacle(RndX, RndY, CaseObstacle);
 
 
-				if ((FirstPlayer.m_X == tmpObs.m_X && FirstPlayer.m_Y == tmpObs.m_Y)
-					&& SecondPlayer.m_X == tmpObs.m_X && SecondPlayer.m_Y == tmpObs.m_Y) {
+				if ((PlayerX.m_X == TmpObs.m_X && PlayerX.m_Y == TmpObs.m_Y)
+					&& PlayerY.m_X == TmpObs.m_X && PlayerY.m_Y == TmpObs.m_Y) {
 					--i;
 					continue;
 				}
 
 				else {
-					if (!(IsSurrounded(Map, FirstPlayer)) || !(IsSurrounded(Map, SecondPlayer)))
-						GenerateRandomObstacles(Map, tmpObs, Rand(2, 5));
+					if (!(IsSurrounded(Map, PlayerX)) || !(IsSurrounded(Map, PlayerY)))
+						GenerateRandomObstacles(Map, TmpObs, Rand(2, 5));
 				}
 			}
 
 
-			rndBX = Rand(round(KSizeX - round(KSizeX / 3)) - Rand(1, 3), round(KSizeX - round(KSizeX / 5)));
+			RndBX = Rand(round(KSizeX - round(KSizeX / 3)) - Rand(1, 3), round(KSizeX - round(KSizeX / 5)));
 			rndBY = Rand(round(KSizeY - round(KSizeY / 3)) - Rand(1, 3), round(KSizeY - round(KSizeY / 5)));
 
-			for (unsigned i(0); i < nbonus; ++i) {
-				choix = Rand(1, 3);
+			for (unsigned i(0); i < NbBonus; ++i) {
+				Choix = Rand(1, 3);
 
-				if (1 == choix)  tmpBonus = InitBonus(1, 1, rndBX - 1, rndBY, KBonusY);
-				else if (2 == choix) tmpBonus = InitBonus(1, 1, rndBX - 1, rndBY, KBonusX);
-				else if (3 == choix) tmpBonus = InitBonus(1, 1, rndBX - 1, rndBY, KBonusZ);
+				if (1 == Choix)  TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusY);
+				else if (2 == Choix) TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusX);
+				else if (3 == Choix) TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusZ);
 
-				PutBonus(Map, tmpBonus);
+				PutBonus(Map, TmpBonus);
 			}
 		}
 		else cout << '\r' << endl << "[!] Vérifiez vos options, le difficulté doit être comprise entre 1 (facile) et 2 (difficile)" << endl;
@@ -572,93 +574,93 @@ namespace {
 
 	// PLAYERS
 
-	bool IsBonusTaken(const SPlayer & player) {
-		return (player.m_sizeX == 1 ? false : true);
+	bool IsBonusTaken(const SPlayer & Player) {
+		return (1 == Player.m_sizeX ? false : true);
 	}//IsBonusTaken()
 
-	SPlayer InitPlayer(const unsigned largeur, const unsigned  hauteur, const unsigned  AxeX, const unsigned  AxeY, const char  Token) {
+	SPlayer InitPlayer(const unsigned Largeur, const unsigned  Hauteur, const unsigned  AxeX, const unsigned  AxeY, const char  Token) {
 
-		SPlayer player;
+		SPlayer Player;
 
-		player.m_sizeX = largeur;
-		player.m_sizeY = hauteur;
-		player.m_X = AxeX;
-		player.m_Y = AxeY;
-		player.m_token = Token;
-		player.m_score = 0;
+		Player.m_sizeX = Largeur;
+		Player.m_sizeY = Hauteur;
+		Player.m_X = AxeX;
+		Player.m_Y = AxeY;
+		Player.m_token = Token;
+		Player.m_score = 0;
 
-		return player;
+		return Player;
 	}//InitPlayer()
 
-	void MovePlayer(CMatricerix & Matrice, char Move, SPlayer & player) {
+	void MovePlayer(CMatrice & Matrice, char Move, SPlayer & Player) {
 
-		unsigned additional(0);
-		if (IsMovementForbidden(player, Move)) return;
+		unsigned Additional(0);
+		if (IsMovementForbidden(Player, Move)) return;
 
-		if (IsBonusTaken(player)) additional = 1;
+		if (IsBonusTaken(Player)) Additional = 1;
 
-		if (Move == KTop) {
-			if (player.m_Y + player.m_sizeY > 2 + additional)
+		if (Move == CMouvTop) {
+			if (Player.m_Y + Player.m_sizeY > 2 + Additional)
 			{
-				player.m_Y -= 1;
+				Player.m_Y -= 1;
 
-				GetBonus(Matrice, player);
-				for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i) {
-					Matrice[player.m_Y + player.m_sizeY][i] = KEmpty;
-					Matrice[player.m_Y][i] = player.m_token;
+				GetBonus(Matrice, Player);
+				for (unsigned i(Player.m_X); i < Player.m_X + Player.m_sizeX; ++i) {
+					Matrice[Player.m_Y + Player.m_sizeY][i] = CaseEmpty;
+					Matrice[Player.m_Y][i] = Player.m_token;
 
 				}
 			}
 		}
 
 
-		else if (Move == KBot) {
+		else if (Move == CMouvBot) {
 
-			if (player.m_Y + player.m_sizeY < Matrice.size() - 1) {
-				player.m_Y += 1;
-				GetBonus(Matrice, player);
+			if (Player.m_Y + Player.m_sizeY < Matrice.size() - 1) {
+				Player.m_Y += 1;
+				GetBonus(Matrice, Player);
 
-				for (unsigned i(player.m_X); i < player.m_X + player.m_sizeX; ++i) {
-					Matrice[player.m_Y - 1][i] = KEmpty;
-					Matrice[player.m_Y + player.m_sizeY - 1][i] = player.m_token;
+				for (unsigned i(Player.m_X); i < Player.m_X + Player.m_sizeX; ++i) {
+					Matrice[Player.m_Y - 1][i] = CaseEmpty;
+					Matrice[Player.m_Y + Player.m_sizeY - 1][i] = Player.m_token;
 
 				}
 			}
 		}
 
-		else if (Move == KLeft) {
-			if (player.m_X + player.m_sizeY > 2 + additional)
+		else if (Move == CMouvLeft) {
+			if (Player.m_X + Player.m_sizeY > 2 + Additional)
 			{
-				player.m_X -= 1;
-				GetBonus(Matrice, player);
+				Player.m_X -= 1;
+				GetBonus(Matrice, Player);
 
-				for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i) {
-					Matrice[i][player.m_X + player.m_sizeX] = KEmpty;
-					Matrice[i][player.m_X] = player.m_token;
+				for (unsigned i(Player.m_Y); i < Player.m_Y + Player.m_sizeY; ++i) {
+					Matrice[i][Player.m_X + Player.m_sizeX] = CaseEmpty;
+					Matrice[i][Player.m_X] = Player.m_token;
 				}
 			}
 		}
 
-		else if (Move == KRight) {
-			if (player.m_X + player.m_sizeX < Matrice[0].size() - 1)
+		else if (Move == CMouvRight) {
+			if (Player.m_X + Player.m_sizeX < Matrice[0].size() - 1)
 			{
-				player.m_X += 1;
-				GetBonus(Matrice, player);
+				Player.m_X += 1;
+				GetBonus(Matrice, Player);
 
-				for (unsigned i(player.m_Y); i < player.m_Y + player.m_sizeY; ++i) {
-					Matrice[i][player.m_X - 1] = KEmpty;
-					Matrice[i][player.m_X + player.m_sizeX - 1] = player.m_token;
+				for (unsigned i(Player.m_Y); i < Player.m_Y + Player.m_sizeY; ++i) {
+					Matrice[i][Player.m_X - 1] = CaseEmpty;
+					Matrice[i][Player.m_X + Player.m_sizeX - 1] = Player.m_token;
 				}
 			}
 		}
 	}//MovePlayer()
 
-	void KeyEvent(const int & ch, CMatricerix & Map, SPlayer & player) {
+	void KeyEvent(const int & ch, CMatrice & Map, SPlayer & Player) {
 
-		if (ch == KTop) MovePlayer(Map, KTop, player);
-		else if (ch == KBot) MovePlayer(Map, KBot, player);
-		else if (ch == KLeft) MovePlayer(Map, KLeft, player);
-		else if (ch == KRight) MovePlayer(Map, KRight, player);
+		if (ch == CMouvTop) MovePlayer(Map, CMouvTop, Player);
+		else if (ch == CMouvBot) MovePlayer(Map, CMouvBot, Player);
+		else if (ch == CMouvLeft) MovePlayer(Map, CMouvLeft, Player);
+		else if (ch == CMouvRight) MovePlayer(Map, CMouvRight, Player);
 		else if (ch == char(3)/*CTRL+C*/) {
 			cout << endl;
 			endwin();
@@ -673,30 +675,28 @@ namespace {
 
 	}//KeyEvent()
 
-	//IA
+	 // IA
 
-	void MoveBot(int & ch, CMatricerix & Map, const unsigned & tour) {
+	void MoveBot(int & ch, CMatrice & Map, const unsigned & Tour) {
 
 
-		if (tour % 2 == 1) {
-
-			if (!(FirstPlayer.m_X == SecondPlayer.m_X)) {
-				if (SecondPlayer.m_X - 1 < FirstPlayer.m_X) MovePlayer(Map, KRight, SecondPlayer);
-				else MovePlayer(Map, KLeft, SecondPlayer);
-			}
+		if (1 == Tour % 2 && (!(PlayerX.m_X == PlayerY.m_X))) {
+			
+			if (PlayerY.m_X - 1 < PlayerX.m_X) MovePlayer(Map, CMouvRight, PlayerY);
+			else MovePlayer(Map, CMouvLeft, PlayerY);
 		}
 
 		else {
 
-			if (!(FirstPlayer.m_Y == SecondPlayer.m_Y)) {
-				if ((SecondPlayer.m_Y - 1) < FirstPlayer.m_Y) MovePlayer(Map, KBot, SecondPlayer);
-				else MovePlayer(Map, KTop, SecondPlayer);
+			if (!(PlayerX.m_Y == PlayerY.m_Y)) {
+				if ((PlayerY.m_Y - 1) < PlayerX.m_Y) MovePlayer(Map, CMouvBot, PlayerY);
+				else MovePlayer(Map, CMouvTop, PlayerY);
 			}
 		}
 
 	}//MoveBot()
 
-	// DELAY
+	 // DELAY
 
 	void PrintDelay() { //TODO
 		for (unsigned i(0); i < 1000; ++i) {
@@ -711,9 +711,9 @@ namespace {
 		unsigned Nbround = GetTourMax();
 		int ch;
 
-		FirstPlayer = InitPlayer(1, 1, 1, 1, KFirstPlayer);
-		SecondPlayer = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, KSecondPlayer);
-		CMatricerix Map = InitMatrice(KSizeX + 1, KSizeY + 1, FirstPlayer, SecondPlayer); // +1 due à la bordure de '#' le long de la Matrice
+		PlayerX = InitPlayer(1, 1, 1, 1, TokenPlayerX);
+		PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY);
+		CMatrice Map = InitMatrice(KSizeX + 1, KSizeY + 1, PlayerX, PlayerY); // +1 due à la bordure de '#' le long de la Matrice
 
 		GenerateStaticObject(Map, KDifficult);
 
@@ -724,7 +724,7 @@ namespace {
 
 		for (unsigned i(0); i < Nbround * 2; ++i) {
 
-			SPlayer &actualplayer = (i % 2 == 0 ? FirstPlayer : SecondPlayer);
+			SPlayer &actualPlayer = (i % 2 == 0 ? PlayerX : PlayerY);
 			const vector <string> playtitle = {
 
 				"               _   _____   _   _   _____   _____   ",
@@ -739,18 +739,18 @@ namespace {
 			ShowMatricerix(Map, false);
 			InitCurses();
 
-			DisplayInfos(actualplayer);
+			DisplayInfos(actualPlayer);
 
 			Couleur(KMagenta);
-			cout << endl << "[?] Au tour du joueur '"; Couleur(KBleu); cout << actualplayer.m_token << '\'' << endl << '\r';
+			cout << endl << "[?] Au Tour du joueur '"; Couleur(KBleu); cout << actualPlayer.m_token << '\'' << endl << '\r';
 			Couleur(KReset);
 
 			if (!(0 == i)) ch = getch();
 
-			KeyEvent(ch, Map, actualplayer);
+			KeyEvent(ch, Map, actualPlayer);
 
 
-			if (CheckIfWin(FirstPlayer, SecondPlayer)) {
+			if (CheckIfWin(PlayerX, PlayerY)) {
 				DisplayWin(i);
 				return;
 			}
@@ -772,15 +772,15 @@ namespace {
 	}//DisplayMulti()
 
 	void DisplayLog() {
-		if (KLog != "") {
+		if (SLog != "") {
 			Couleur(KRouge, KHGris);
-			cout << endl << "[!] Dernière inforMatriceion : " << KLog << "\n\r";
-			KLog = "";
+			cout << endl << "[!] Dernière inforMatriceion : " << SLog << "\n\r";
+			SLog = "";
 		}
 		Couleur(KReset);
 	} // DisplayLog()
 
-	void DisplayInfos(const SPlayer & player) {
+	void DisplayInfos(const SPlayer & Player) {
 		Couleur(KVert);
 		cout << endl << "[+] Difficulté : " << KDifficult << flush << endl << '\r';
 
@@ -788,11 +788,11 @@ namespace {
 		cout << endl << "[+] Taille : (" << KSizeX << ", " << KSizeY << ')' << endl << '\r';
 
 		Couleur(KReset);
-		if (KShowRules) {
-			cout << endl << "[!] Regles :" << endl << '\r' << setw(5) << "Les bonus représentés par des " << KBonusX
-				<< ", " << KBonusY << ", " << KBonusZ << " ont différentes propriétés."
+		if (BShowRules) {
+			cout << endl << "[!] Regles :" << endl << '\r' << setw(5) << "Les bonus représentés par des " << BonusX
+				<< ", " << BonusY << ", " << BonusZ << " ont différentes propriétés."
 				<< endl << setw(5) << "\rA vous de les découvrir !" << endl << '\r'
-				<< "Enfin, les obstacles sont représentés par des '" << KObstacle << "'." << endl << '\r'
+				<< "Enfin, les obstacles sont représentés par des '" << CaseObstacle << "'." << endl << '\r'
 				<< "Les obstacles et les bonus sont générés de façon"; Couleur(KRouge); cout << " ALEATOIRE. "; Couleur(KReset); cout << endl << '\r' <<
 				"Leur nombre dépend de la difficulté choisie. Il se peut qu'aucun bonus n'aparaisse." << endl << '\r';
 		}
@@ -803,7 +803,7 @@ namespace {
 		cout << 'R'; Couleur(KReset); Couleur(KJaune);
 		cout << " (restart)" << endl << '\r';
 
-		Couleur(KCyan); cout << endl << "[+] Votre score est de : " << player.m_score << endl << '\r'; Couleur(KReset);
+		Couleur(KCyan); cout << endl << "[+] Votre score est de : " << Player.m_score << endl << '\r'; Couleur(KReset);
 
 		DisplayLog();
 	}//DisplayInfos
@@ -831,20 +831,20 @@ namespace {
 		cout << endl << "[!] Attention, ces configurations ne seront présentes jusqu'à la fermeture complète du jeu." << endl;
 
 
-		unsigned numero;
-		string newparam;
+		unsigned Numero;
+		string NewParam;
 
 		Couleur(KCyan);
 		cout << endl << "[+] Afin de modifier un paramètre, veuillez entrer le numéro correspondant : ";
-		cin >> numero;
-		if (numero > VOptionsName.size()) {
-			KLog += "Vous avez été renvoyé au menu car le paramétre ne correspondait à aucune valeur.";
+		cin >> Numero;
+		if (Numero > VOptionsName.size()) {
+			SLog += "Vous avez été renvoyé au menu car le paramétre ne correspondait à aucune valeur.";
 			DisplayMenu();
 			return;
 		}
-		cout << VOptionsName[numero] << " deviendra : ";
-		cin >> newparam;
-		SetConfig(VOptionsName[numero], newparam);
+		cout << VOptionsName[Numero] << " deviendra : ";
+		cin >> NewParam;
+		SetConfig(VOptionsName[Numero], NewParam);
 
 		Couleur(KReset);
 
@@ -859,7 +859,7 @@ namespace {
 
 		vector <string> menulist = { "Jouer contre l'ordinateur (IA)", "Jouer à plusieur", "Options", "Quitter" };
 
-		unsigned choice(0);
+		unsigned Choice(0);
 
 		const vector <string>  menutitle = {
 			"     ___  ___   _____   __   _   _   _  ",
@@ -876,11 +876,11 @@ namespace {
 		Couleur(KCyan, KHJaune); cout << "\n\r[!] Recommandation : agrandissez-la console !" << endl << endl << '\r'; Couleur(KReset);
 
 		for (string option : menulist) {
-			++choice;
+			++Choice;
 
 			cout << ' ';
 			Couleur(KRouge);
-			cout << "[" << choice << "] ";
+			cout << "[" << Choice << "] ";
 			Couleur(KReset);
 			cout << option << endl << endl;
 
@@ -918,12 +918,12 @@ namespace {
 
 		unsigned Nbround = GetTourMax();
 		int ch;
-		unsigned tourIA, tour(0);
+		unsigned TourIA, Tour(0);
 
 
-		FirstPlayer = InitPlayer(1, 1, 1, 1, KFirstPlayer);
-		SecondPlayer = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, KSecondPlayer); //le robot
-		CMatricerix Map = InitMatrice(KSizeX + 1, KSizeY + 1, FirstPlayer, SecondPlayer); // +1 due à la bordure de '#' le long de la Matrice
+		PlayerX = InitPlayer(1, 1, 1, 1, TokenPlayerX);
+		PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY); //le robot
+		CMatrice Map = InitMatrice(KSizeX + 1, KSizeY + 1, PlayerX, PlayerY); // +1 due à la bordure de '#' le long de la Matrice
 
 		GenerateStaticObject(Map, KDifficult);
 
@@ -932,9 +932,9 @@ namespace {
 
 		ShowMatricerix(Map);
 
-		for (; tour < Nbround * 2; ++tour) {
-			/*FirstPlayer = User. SecondPlayer = IA.*/
-			SPlayer &actualplayer = (tour % 2 == 0 ? FirstPlayer : SecondPlayer);
+		for (; Tour < Nbround * 2; ++Tour) {
+			/*PlayerX = User. PlayerY = IA.*/
+			SPlayer &actualPlayer = (Tour % 2 == 0 ? PlayerX : PlayerY);
 
 			const vector <string> playtitle = {
 
@@ -951,26 +951,26 @@ namespace {
 
 			InitCurses();
 
-			DisplayInfos(FirstPlayer);
+			DisplayInfos(PlayerX);
 
 			Couleur(KMagenta);
-			cout << endl << "[+] A vous de jouer '"; Couleur(KBleu); cout << FirstPlayer.m_token << "' !" << endl << '\r';
+			cout << endl << "[+] A vous de jouer '"; Couleur(KBleu); cout << PlayerX.m_token << "' !" << endl << '\r';
 			Couleur(KReset);
 
-			if (!(tour % 2 == 0)) ch = getch();
+			if (!(Tour % 2 == 0)) ch = getch();
 
-			if (actualplayer.m_token == FirstPlayer.m_token) KeyEvent(ch, Map, FirstPlayer);
+			if (actualPlayer.m_token == PlayerX.m_token) KeyEvent(ch, Map, PlayerX);
 
-			else if (actualplayer.m_token == SecondPlayer.m_token) {
+			else if (actualPlayer.m_token == PlayerY.m_token) {
 				usleep(3000);
 
-				MoveBot(ch, Map, tourIA);
-				++tourIA;
+				MoveBot(ch, Map, TourIA);
+				++TourIA;
 
 			}
 
-			if (CheckIfWin(FirstPlayer, SecondPlayer)) {
-				DisplayWin(tour, false);
+			if (CheckIfWin(PlayerX, PlayerY)) {
+				DisplayWin(Tour, false);
 				return;
 			}
 
@@ -997,7 +997,9 @@ int main() {
 	DisplayMenu();
 
 	endwin();
+
 	Couleur(KReset);
 	cout << endl << endl;
+
 	return 0;
 }
