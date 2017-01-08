@@ -5,6 +5,7 @@
 #include <ncurses.h>	// initscr() ...
 #include <sys/ioctl.h>	// winsize ...
 #include <unistd.h>		// ioctl() ...
+#include <fstream>		// ifstream() ...
 
 /* OPTIONAL INCLUDE
 	#include <string>
@@ -20,7 +21,6 @@ TODO :
 
 - Historique des déplacements
 - Ajouter un timer
-- Utiliser les fichiers externes pour l'ASCII-Art dans les Display
 
 */
 
@@ -158,6 +158,24 @@ namespace {
 		return(Chaine == "true" ? true : false);
 	} //StrToBool()
 
+	void ShowTitle(const string & FileName, const bool Clear = true) {
+
+		ClearScreen();
+		string StrTitle;
+		string StrDir = "asciititle";
+		ifstream IFSTitle(StrDir + '/'  + FileName);
+
+		cout << endl;
+
+		while (true) {
+			if (IFSTitle.eof()) break;
+			getline(IFSTitle, StrTitle);
+			cout << StrTitle << endl;
+		}
+
+		IFSTitle.clear();
+	}
+
 	// OPTIONS
 
 	void InitOptions() {
@@ -217,7 +235,7 @@ namespace {
 
 
 	} //SetConfig();
-	
+
 	// MATRICE
 
 	CMatrice InitMatrice(unsigned NbLine, unsigned NbColumn, SPlayer & PlayerX, SPlayer & PlayerY, bool ShowBorder = true) {
@@ -681,7 +699,7 @@ namespace {
 
 
 		if (1 == Tour % 2 && (!(PlayerX.m_X == PlayerY.m_X))) {
-			
+
 			if (PlayerY.m_X - 1 < PlayerX.m_X) MovePlayer(Map, CMouvRight, PlayerY);
 			else MovePlayer(Map, CMouvLeft, PlayerY);
 		}
@@ -725,17 +743,8 @@ namespace {
 		for (unsigned i(0); i < Nbround * 2; ++i) {
 
 			SPlayer &actualPlayer = (i % 2 == 0 ? PlayerX : PlayerY);
-			const vector <string> playtitle = {
 
-				"               _   _____   _   _   _____   _____   ",
-				"              | | /  _  \\ | | | | | ____| |  _  \\  ",
-				"              | | | | | | | | | | | |__   | |_| |  ",
-				"           _  | | | | | | | | | | |  __|  |  _  /  ",
-				"          | |_| | | |_| | | |_| | | |___  | | \\ \\  ",
-				"          \\_____/ \\_____/ \\_____/ |_____| |_|  \\_\\ ",
-				"\n"
-			};
-			for (string Lines : playtitle) cout << endl << Lines;
+			ShowTitle("multi.title");
 			ShowMatricerix(Map, false);
 			InitCurses();
 
@@ -811,25 +820,13 @@ namespace {
 	void DisplayOption() {
 
 		ClearScreen();
-		const vector <string> optiontitle = {
-			" _____   _____   _____   _   _____   __   _   _____  ",
-			"/  _  \\ |  _  \\ |_   _| | | /  _  \\ |  \\ | | /  ___/ ",
-			"| | | | | |_| |   | |   | | | | | | |   \\| | | |___  ",
-			"| | | | |  ___/   | |   | | | | | | | |\\   | \\___  \\ ",
-			"| |_| | | |       | |   | | | |_| | | | \\  |  ___| | ",
-			"\\_____/ |_|       |_|   |_| \\_____/ |_|  \\_| /_____/ ",
-			"\n"
-		};
-		for (string Lines : optiontitle) cout << ' ' << Lines << endl;
+		ShowTitle("option.title");
 
-		cout << "Liste des options par defaut : " << endl;
-
+		cout << endl << endl << "Liste des options par defaut : " << endl << endl;
 		for (unsigned i(0); i < VOptionsName.size(); ++i) cout << i << ". " << VOptionsName[i] << " : '" << VOptionValue[i] << '\'' << endl;
 
 		Couleur(KRouge);
-
 		cout << endl << "[!] Attention, ces configurations ne seront présentes jusqu'à la fermeture complète du jeu." << endl;
-
 
 		unsigned Numero;
 		string NewParam;
@@ -854,24 +851,14 @@ namespace {
 	}//DisplayOption()
 
 	void DisplayMenu() {
-		ClearScreen();
-
-
-		vector <string> menulist = { "Jouer contre l'ordinateur (IA)", "Jouer à plusieur", "Options", "Quitter" };
 
 		unsigned Choice(0);
 
-		const vector <string>  menutitle = {
-			"     ___  ___   _____   __   _   _   _  ",
-			"    /   |/   | | ____| |  \\ | | | | | | ",
-			"   / /|   /| | | |__   |   \\| | | | | | ",
-			"  / / |__/ | | |  __|  | |\\   | | | | | ",
-			" / /       | | | |___  | | \\  | | |_| | ",
-			"/_/        |_| |_____| |_|  \\_| \\_____/ ",
-			"\n"
-		};
+		ClearScreen();
+		ShowTitle("menu.title");
 
-		for (string line : menutitle) cout << ' ' << line << endl;
+		vector <string> menulist = { "Jouer contre l'ordinateur (IA)", "Jouer à plusieur", "Options", "Quitter" };
+
 
 		Couleur(KCyan, KHJaune); cout << "\n\r[!] Recommandation : agrandissez-la console !" << endl << endl << '\r'; Couleur(KReset);
 
@@ -935,18 +922,9 @@ namespace {
 		for (; Tour < Nbround * 2; ++Tour) {
 			/*PlayerX = User. PlayerY = IA.*/
 			SPlayer &actualPlayer = (Tour % 2 == 0 ? PlayerX : PlayerY);
+			cout << endl;
+			ShowTitle("solo.title");
 
-			const vector <string> playtitle = {
-
-				"      _____   _____   _       _____  ",
-				"     /  ___/ /  _  \\ | |     /  _  \\ ",
-				"     | |___  | | | | | |     | | | | ",
-				"     \\___  \\ | | | | | |     | | | | ",
-				"      ___| | | |_| | | |___  | |_| | ",
-				"     /_____/ \\_____/ |_____| \\_____/ ",
-				"\n"
-			};
-			for (string Lines : playtitle) cout << endl << Lines;
 			ShowMatricerix(Map, false);
 
 			InitCurses();
