@@ -16,12 +16,9 @@
 using namespace std;
 
 /*
-
 TODO :
 
-- Historique des déplacements
 - Ajouter un timer
-
 */
 
 /*
@@ -41,6 +38,7 @@ typedef struct {
 	unsigned m_sizeY;
 	int m_score;
 	char m_token;
+	vector<char> m_history;
 } SPlayer;
 
 typedef struct {
@@ -89,6 +87,7 @@ namespace {
 	string SLog;
 
 	bool BShowRules;
+	bool BShowHistory;
 
 	unsigned KSizeY;
 	unsigned KSizeX;
@@ -113,8 +112,8 @@ namespace {
 
 	void DisplayMenu();
 	void DisplaySoloIA();
+	void DisplayHistory();
 	void DisplayInfos(const SPlayer & Player);
-
 
 	//SCREEN - INITS
 
@@ -127,11 +126,20 @@ namespace {
 
 	unsigned GetTourMax() {
 		unsigned Nbround;
+
 		Couleur(KCyan);
 		cout << endl << "[?] Entrez le nombre de rounds : ";
+	
+ 		while (!(cin >> Nbround))
+		{
+			Couleur(KRouge);
+			cout << "\n\r[!] Le nombre de tour est incorrect. Veillez réessayer : \n\r";
+			cin.clear();
+			break;
+
+		}
 		Couleur(KReset);
 
-		cin >> Nbround;
 		return Nbround;
 	} //GetTourMax()
 
@@ -163,7 +171,7 @@ namespace {
 		ClearScreen();
 		string StrTitle;
 		string StrDir = "asciititle";
-		ifstream IFSTitle(StrDir + '/'  + FileName);
+		ifstream IFSTitle(StrDir + '/' + FileName);
 
 		cout << endl;
 
@@ -174,7 +182,7 @@ namespace {
 		}
 
 		IFSTitle.clear();
-	}
+	}//ShowTitle()
 
 	// OPTIONS
 
@@ -201,11 +209,12 @@ namespace {
 		CaseBorder = '#';
 		TokenPlayerX = 'X';
 		TokenPlayerY = 'O';
+		BShowHistory = true;
 		BShowRules = true;
 
-		VOptionsName = { "CaseEmpty", "TokenPlayerX", "TokenPlayerY", "KSizeX", "KSizeY", "KDelay", "KDifficult", "BShowRules" };
+		VOptionsName = { "CaseEmpty", "TokenPlayerX", "TokenPlayerY", "KSizeX", "KSizeY", "KDelay", "KDifficult", "BShowRules", "BShowHistory" };
 
-		VOptionValue = { ".",  "X" ,"O", "10", "10", "10", "2", "true" };
+		VOptionValue = { ".",  "X" ,"O", "10", "10", "10", "2", "true", "true" };
 
 		if (1 == KDifficult) VOptionValue[6] = "1";
 		else VOptionValue[6] = "0";
@@ -232,6 +241,7 @@ namespace {
 		else if ("KDelay" == Name) KDelay = stoul(Value);
 		else if ("KDifficult" == Name) KDifficult = stoul(Value);
 		else if ("BShowRules" == Name) BShowRules = StrToBool(Value);
+		else if ("BShowHistory" == Name) BShowHistory = StrToBool(Value);
 
 
 	} //SetConfig();
@@ -321,8 +331,8 @@ namespace {
 
 	void DisplayWin(const unsigned &Tour, const bool &IsBot = true) {
 
-		SPlayer winner = GetWinner(PlayerX, PlayerY, Tour);
-		unsigned margin(3);
+		SPlayer Winner = GetWinner(PlayerX, PlayerY, Tour);
+		unsigned Margin(3);
 
 		if (IsBot) {
 
@@ -330,19 +340,29 @@ namespace {
 			cout << setw(round(size.ws_col / 2) - 13);
 		}
 
-		for (unsigned i(0); i < margin; ++i) cout << endl;
+		for (unsigned i(0); i < Margin; ++i) cout << endl;
 		Couleur(KRouge, KHCyan);
 
-		cout << endl << endl << "[!] Le joueur '" << winner.m_token << "' a gagné avec : ";
+		cout << endl << endl << "[!] Le joueur '" << Winner.m_token << "' a gagné avec : ";
 
-		Couleur(KHBleu, KHGris); cout << winner.m_score;
+		Couleur(KHBleu, KHGris); cout << Winner.m_score;
 		Couleur(KRouge, KHCyan); cout << " points" << '!' << endl << '\r';
+
+		if (BShowHistory) {
+			for (unsigned i(0); i < 3; ++i) cout << endl;
+			Couleur(KRouge, KHJaune);
+			cout << "Historique du gagnant : \n\r" << endl << "n° | Mouv \n\r" << "__________\n\r";
+
+			for (unsigned i(0); i < Winner.m_history.size(); ++i) 
+ 				cout << "| " << i  << " | " << Winner.m_history[i] << " | " << "\n\r";
+
+			Couleur(KReset);
+		}
 
 		Couleur(KReset);
 		endwin();
 		return;
 	} //DisplayWin()
-
 
 	// BONUS
 
@@ -596,7 +616,7 @@ namespace {
 		return (1 == Player.m_sizeX ? false : true);
 	}//IsBonusTaken()
 
-	SPlayer InitPlayer(const unsigned Largeur, const unsigned  Hauteur, const unsigned  AxeX, const unsigned  AxeY, const char  Token) {
+	SPlayer InitPlayer(const unsigned Largeur, const unsigned Hauteur, const unsigned  AxeX, const unsigned  AxeY, const char  Token) {
 
 		SPlayer Player;
 
@@ -605,6 +625,7 @@ namespace {
 		Player.m_X = AxeX;
 		Player.m_Y = AxeY;
 		Player.m_token = Token;
+		/*Constant values below*/
 		Player.m_score = 0;
 
 		return Player;
@@ -614,13 +635,13 @@ namespace {
 
 		unsigned Additional(0);
 		if (IsMovementForbidden(Player, Move)) return;
-
+		Player.m_history.push_back(toupper(Move));
 		if (IsBonusTaken(Player)) Additional = 1;
 
 		if (Move == CMouvTop) {
 			if (Player.m_Y + Player.m_sizeY > 2 + Additional)
 			{
-				Player.m_Y -= 1;
+				--Player.m_Y;
 
 				GetBonus(Matrice, Player);
 				for (unsigned i(Player.m_X); i < Player.m_X + Player.m_sizeX; ++i) {
@@ -635,7 +656,7 @@ namespace {
 		else if (Move == CMouvBot) {
 
 			if (Player.m_Y + Player.m_sizeY < Matrice.size() - 1) {
-				Player.m_Y += 1;
+				++Player.m_Y ;
 				GetBonus(Matrice, Player);
 
 				for (unsigned i(Player.m_X); i < Player.m_X + Player.m_sizeX; ++i) {
@@ -649,7 +670,7 @@ namespace {
 		else if (Move == CMouvLeft) {
 			if (Player.m_X + Player.m_sizeY > 2 + Additional)
 			{
-				Player.m_X -= 1;
+				--Player.m_X;
 				GetBonus(Matrice, Player);
 
 				for (unsigned i(Player.m_Y); i < Player.m_Y + Player.m_sizeY; ++i) {
@@ -662,7 +683,7 @@ namespace {
 		else if (Move == CMouvRight) {
 			if (Player.m_X + Player.m_sizeX < Matrice[0].size() - 1)
 			{
-				Player.m_X += 1;
+				++Player.m_X;
 				GetBonus(Matrice, Player);
 
 				for (unsigned i(Player.m_Y); i < Player.m_Y + Player.m_sizeY; ++i) {
@@ -690,6 +711,8 @@ namespace {
 			system("rm main.out 2>/dev/null; g++ -std=c++11  main.cpp -o main.out -Wall -ltinfo -lncurses; ./main.out");
 			exit(0);
 		}
+		string str = to_string(ch);
+
 
 	}//KeyEvent()
 
@@ -699,13 +722,11 @@ namespace {
 
 
 		if (1 == Tour % 2 && (!(PlayerX.m_X == PlayerY.m_X))) {
-
 			if (PlayerY.m_X - 1 < PlayerX.m_X) MovePlayer(Map, CMouvRight, PlayerY);
 			else MovePlayer(Map, CMouvLeft, PlayerY);
 		}
 
 		else {
-
 			if (!(PlayerX.m_Y == PlayerY.m_Y)) {
 				if ((PlayerY.m_Y - 1) < PlayerX.m_Y) MovePlayer(Map, CMouvBot, PlayerY);
 				else MovePlayer(Map, CMouvTop, PlayerY);
