@@ -164,7 +164,7 @@ namespace {
 
 		ClearScreen();
 		string StrTitle;
-		string StrDir = "title";
+		string StrDir = "asciititle";
 		ifstream IFSTitle(StrDir + '/' + FileName);
 
 		cout << endl;
