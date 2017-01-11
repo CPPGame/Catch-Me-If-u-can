@@ -2,8 +2,8 @@
 #include <vector>		// vector<AType> ...
 #include <random>		// random_device ...
 #include <iomanip>		// setwp() ...
-#include <ncurses.h>		// initscr() ...
-#include <sys/ioctl.h>		// winsize ...
+#include <ncurses.h>	// initscr() ...
+#include <sys/ioctl.h>	// winsize ...
 #include <unistd.h>		// ioctl() ...
 #include <fstream>		// ifstream() ...
 #include <utility>		// make_pair() ...
@@ -15,7 +15,7 @@ using namespace std;
 TODO :
 
 - Ajouter un timer
-- Ajouter un editeur de map
+- Editor de map
 
 Compilation préconisée : rm main.out; g++ -std=c++11  main.cpp -o main.out -Wall -ltinfo -lncurses;  ./main.out
 Package à installer : libncurses5-dev (sudo apt-get install libncurses5-dev)
@@ -107,6 +107,7 @@ namespace {
 	void DisplayMenu();
 	void DisplaySoloIA();
 	void DisplayHistory();
+	void DisplayEditor();
 	void DisplayInfos(const SPlayer & Player);
 
 	//SCREEN - INITS
@@ -242,6 +243,22 @@ namespace {
 
 	// MATRICE
 
+	unsigned GetMaxLine(const string & File) {
+		string Line;
+		unsigned NbLine(0);
+		ifstream ReadedMap(File);
+		while (getline(ReadedMap, Line)) ++NbLine;
+		return NbLine;
+	}
+
+	unsigned GetMaxColumn(const string & File) {
+		string Line;
+		ifstream ReadedMap(File);
+		//Retourne la taille de la première ligne du fichier
+		while (getline(ReadedMap, Line)) return Line.length();
+		
+	}
+
 	CMatrice InitMatrice(unsigned NbLine, unsigned NbColumn, SPlayer & PlayerX, SPlayer & PlayerY, bool ShowBorder = true) {
 		CMatrice Matrice;
 		Matrice.resize(NbLine);
@@ -279,7 +296,7 @@ namespace {
 		return Matrice;
 	} //InitMatrice()
 
-	void ShowMatricerix(const CMatrice & Matrice, const bool Clear = true) {
+	void ShowMatrice(const CMatrice & Matrice, const bool Clear = true) {
 
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
 
@@ -308,7 +325,19 @@ namespace {
 			}
 			cout << endl;
 		}
-	}//ShowMatricerix
+	}//ShowMatrice
+
+	CMatrice LoadMatriceByFile(const string & MapName) {
+
+		const string FullName = "./map/" + MapName;
+		unsigned NbLine = GetMaxLine(FullName);
+		unsigned NbColumn = GetMaxColumn(FullName);
+
+		CMatrice LoadedMatrice = InitMatrice(NbLine, NbColumn, PlayerX, PlayerY);
+
+		/* Reste à ajouter les obstacles // bonus */
+ 		return LoadedMatrice;
+	}
 
 	// WIN CHECK - WIN STAT
 
@@ -737,6 +766,8 @@ namespace {
 		}
 	}
 
+	// EDITOR
+
 	//DISPLAYS
 
 	void DisplayMulti() {
@@ -753,14 +784,14 @@ namespace {
 		initscr();
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
 
-		ShowMatricerix(Map);
+		ShowMatrice(Map);
 
 		for (unsigned i(0); i < Nbround * 2; ++i) {
 
 			SPlayer &actualPlayer = (i % 2 == 0 ? PlayerX : PlayerY);
 
 			ShowTitle("multi.title");
-			ShowMatricerix(Map, false);
+			ShowMatrice(Map, false);
 			InitCurses();
 
 			DisplayInfos(actualPlayer);
@@ -872,7 +903,7 @@ namespace {
 		ClearScreen();
 		ShowTitle("menu.title");
 
-		vector <string> menulist = { "Jouer contre l'ordinateur (IA)", "Jouer à plusieur", "Options", "Quitter" };
+		vector <string> menulist = { "Jouer contre l'ordinateur (IA)", "Jouer à plusieur", "Editeur de map" ,"Options", "Quitter" };
 
 
 		Couleur(KCyan, KHJaune); cout << "\n\r[!] Recommandation : agrandissez-la console !" << endl << endl << '\r'; Couleur(KReset);
@@ -901,9 +932,12 @@ namespace {
 			DisplayMulti();
 			break;
 		case 3:
-			DisplayOption();
+			DisplayEditor();
 			break;
 		case 4:
+			DisplayOption();
+			break;
+		case 5:
 			exit(0);
 
 		default:
@@ -924,7 +958,7 @@ namespace {
 
 
 		PlayerX = InitPlayer(1, 1, 1, 1, TokenPlayerX);
-		PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY); //le robot
+		PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY); // Le robot
 		CMatrice Map = InitMatrice(KSizeX + 1, KSizeY + 1, PlayerX, PlayerY); // +1 due à la bordure de '#' le long de la Matrice
 
 		GenerateStaticObject(Map, KDifficult);
@@ -932,7 +966,7 @@ namespace {
 		initscr();
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
 
-		ShowMatricerix(Map);
+		ShowMatrice(Map);
 
 		for (; Tour < Nbround * 2; ++Tour) {
 			/*PlayerX = User. PlayerY = IA.*/
@@ -940,7 +974,7 @@ namespace {
 			cout << endl;
 			ShowTitle("solo.title");
 
-			ShowMatricerix(Map, false);
+			ShowMatrice(Map, false);
 
 			InitCurses();
 
@@ -982,15 +1016,46 @@ namespace {
 
 		}
 	} //DisplaySoloIA()
+
+	void DisplayEditor() {
+
+		ShowTitle("editor.title");
+		for (unsigned i(0); i < 3; ++i) cout << endl;
+
+		/* Avec les fleches, et la touche entrée, on créer des obstacles et des bonus.
+		On choisit la taille de la matrice.
+		Quand on enregistre, on l'enregistre dans /map/nom.map
+		Puis on la load avec LoadMap(); */
+
+		unsigned NbLine, NbColumn;
+		Couleur(KCyan);
+		cout << "Quelle sera la taille de la carte ? \n\r";
+		cout << "Taille en hauteur : \r";
+		cin >> NbLine;
+		cout << "Taille en largeur : \r";
+		cin >> NbColumn;
+
+		CMatrice EmptyMatrice = InitMatrice(NbLine, NbColumn, PlayerX, PlayerY);
+		ClearScreen();
+
+		ShowTitle("editor.title");
+		for (unsigned i(0); i < 3; ++i) cout << endl;
+		Couleur(KBleu, KHJaune);
+		cout << "[+] Votre carte ressemble actuellement à cela : \n\r";
+		ShowMatrice(EmptyMatrice, false);
+		Couleur(KCyan, KHVert);
+		cout << "\n\r\r\n\rUtilisez les touches directionelle pour vous diriger sur la map. \n\rCliquez sur F, G ou H pour placer des bonus" <<
+			"\n\rCliquez sur ENTREE pour placer des obstacles\n\r";
+		Couleur(KReset);
+
+	}//DisplayEditor()
 }
 
 int main() {
 
 	InitOptions();
 	DisplayMenu();
-
 	endwin();
-
 	Couleur(KReset);
 	cout << endl << endl;
 
