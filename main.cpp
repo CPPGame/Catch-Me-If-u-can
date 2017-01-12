@@ -17,8 +17,9 @@ TODO :
 - Ajouter un timer
 - Editor de map
 
-Compilation préconisée : rm main.out; g++ -std=c++11  main.cpp -o main.out -Wall -ltinfo -lncurses;  ./main.out
+Compilation préconisée :  rm main.out; g++ -std=c++11  CMIFUC.cpp -o main.out -Wall -ltinfo -lncurses;  ./main.out
 Package à installer : libncurses5-dev (sudo apt-get install libncurses5-dev)
+Alias : projet="rm Developpement/Projet/C++/Catch\ Me\ If\ U\ Can/main.out; g++ -std=c++11  Developpement/Projet/C++/Catch\ Me\ If\ U\ Can/CMIFUC.cpp -o Developpement/Projet/C++/Catch\ Me\ If\ U\ Can/main.out -Wall -ltinfo -lncurses; cd ./Developpement/Projet/C++/Catch\ Me\ If\ U\ Can/; ./main.out; cd ../../../../"
 
 */
 
@@ -104,6 +105,7 @@ namespace {
 	SPlayer PlayerX;
 	SPlayer PlayerY;
 
+	void DisplayLog();
 	void DisplayMenu();
 	void DisplaySoloIA();
 	void DisplayHistory();
@@ -124,8 +126,8 @@ namespace {
 
 		Couleur(KCyan);
 		cout << endl << "[?] Entrez le nombre de rounds : ";
-	
- 		while (!(cin >> Nbround))
+
+		while (!(cin >> Nbround))
 		{
 			Couleur(KRouge);
 			cout << "\n\r[!] Le nombre de tour est incorrect. Veillez réessayer : \n\r";
@@ -137,6 +139,11 @@ namespace {
 
 		return Nbround;
 	} //GetTourMax()
+
+	void SetTextMiddle() {
+		cout << setw(round(size.ws_col / 2));
+
+	} //SetTextMiddle()
 
 	void ClearScreen() {
 		cout << "\033[H\033[2J";
@@ -151,11 +158,21 @@ namespace {
 		return uni(Rng);
 	}//Rand()
 
-	void InitCurses() {
+	void ListenKeyboard() {
 		raw();
 		keypad(stdscr, TRUE);
 		noecho();
-	} //InitCurses()
+	} //ListenKeyboard()
+
+	void InitCurses() {
+
+		initscr();
+		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
+	}
+
+	void PrintLines(const unsigned & LineNumber) {
+		for (unsigned i(0); i < LineNumber; ++i) cout << endl;
+	} //PrintLines
 
 	bool StrToBool(const string & Chaine) {
 		return(Chaine == "true" ? true : false);
@@ -255,8 +272,9 @@ namespace {
 		string Line;
 		ifstream ReadedMap(File);
 		//Retourne la taille de la première ligne du fichier
-		while (getline(ReadedMap, Line)) return Line.length();
-		
+		getline(ReadedMap, Line);
+		return Line.length();
+
 	}
 
 	CMatrice InitMatrice(unsigned NbLine, unsigned NbColumn, SPlayer & PlayerX, SPlayer & PlayerY, bool ShowBorder = true) {
@@ -298,15 +316,12 @@ namespace {
 
 	void ShowMatrice(const CMatrice & Matrice, const bool Clear = true) {
 
-		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
-
 		if (Clear) ClearScreen();
-		cout << endl << endl;
+		PrintLines(2);
 		Couleur(KReset);
 
 		for (unsigned i(0); i < Matrice.size(); ++i) {
-			cout << setw(round(size.ws_col / 2) - Matrice.size());
-
+			SetTextMiddle();
 			for (unsigned a(0); a < Matrice[i].size(); ++a) {
 
 				/*GESTION DES CoulEURS*/
@@ -336,7 +351,7 @@ namespace {
 		CMatrice LoadedMatrice = InitMatrice(NbLine, NbColumn, PlayerX, PlayerY);
 
 		/* Reste à ajouter les obstacles // bonus */
- 		return LoadedMatrice;
+		return LoadedMatrice;
 	}
 
 	// WIN CHECK - WIN STAT
@@ -355,15 +370,14 @@ namespace {
 	void DisplayWin(const unsigned &Tour, const bool &IsBot = true) {
 
 		SPlayer Winner = GetWinner(PlayerX, PlayerY, Tour);
-		unsigned Margin(3);
 
 		if (IsBot) {
 
 			ClearScreen();
-			cout << setw(round(size.ws_col / 2) - 13);
+			SetTextMiddle();
 		}
 
-		for (unsigned i(0); i < Margin; ++i) cout << endl;
+		PrintLines(1);
 		Couleur(KRouge, KHCyan);
 
 		cout << endl << endl << "[!] Le joueur '" << Winner.m_token << "' a gagné avec : ";
@@ -372,12 +386,12 @@ namespace {
 		Couleur(KRouge, KHCyan); cout << " points" << '!' << endl << '\r';
 
 		if (BShowHistory) {
-			for (unsigned i(0); i < 3; ++i) cout << endl;
+			PrintLines(3);
 			Couleur(KRouge, KHJaune);
 			cout << "Historique du gagnant : \n\r" << endl << "n° | Mouv \n\r" << "__________\n\r";
 
-			for (unsigned i(0); i < Winner.m_history.size(); ++i) 
- 				cout << "| " << i  << " | " << Winner.m_history[i] << " | " << "\n\r";
+			for (unsigned i(0); i < Winner.m_history.size(); ++i)
+				cout << "| " << i << " | " << Winner.m_history[i] << " | " << "\n\r";
 
 			Couleur(KReset);
 		}
@@ -389,13 +403,10 @@ namespace {
 
 	// BONUS
 
-	SBonus InitBonus(const unsigned Largeur, const unsigned Hauteur, const unsigned
-		AxeX, const unsigned AxeY, const char Token) {
+	SBonus InitBonus(const unsigned AxeX, const unsigned AxeY, const char Token) {
 
 		SBonus Bonus;
 
-		Bonus.m_sizeX = Largeur;
-		Bonus.m_sizeY = Hauteur;
 		Bonus.m_X = AxeX;
 		Bonus.m_Y = AxeY;
 		Bonus.m_token = Token;
@@ -577,9 +588,9 @@ namespace {
 				RndBX = Rand(round(KSizeX - round(KSizeX / 3)) - Rand(1, 3), round(KSizeX - round(KSizeX / 5)) + Rand(1, 3));
 				rndBY = Rand(round(KSizeY - round(KSizeY / 3)) - Rand(1, 3), round(KSizeY - round(KSizeY / 5)) + Rand(1, 3));
 
-				if (Choix == 1) TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusY);
-				else if (Choix == 2) TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusX);
-				else if (Choix == 3) TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusZ);
+				if (Choix == 1) TmpBonus = InitBonus(RndBX - 1, rndBY, BonusY);
+				else if (Choix == 2) TmpBonus = InitBonus(RndBX - 1, rndBY, BonusX);
+				else if (Choix == 3) TmpBonus = InitBonus(RndBX - 1, rndBY, BonusZ);
 
 				PutBonus(Map, TmpBonus);
 			}
@@ -621,9 +632,9 @@ namespace {
 			for (unsigned i(0); i < NbBonus; ++i) {
 				Choix = Rand(1, 3);
 
-				if (1 == Choix)  TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusY);
-				else if (2 == Choix) TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusX);
-				else if (3 == Choix) TmpBonus = InitBonus(1, 1, RndBX - 1, rndBY, BonusZ);
+				if (1 == Choix)  TmpBonus = InitBonus(RndBX - 1, rndBY, BonusY);
+				else if (2 == Choix) TmpBonus = InitBonus(RndBX - 1, rndBY, BonusX);
+				else if (3 == Choix) TmpBonus = InitBonus(RndBX - 1, rndBY, BonusZ);
 
 				PutBonus(Map, TmpBonus);
 			}
@@ -679,7 +690,7 @@ namespace {
 		else if (Move == CMouvBot) {
 
 			if (Player.m_Y + Player.m_sizeY < Matrice.size() - 1) {
-				++Player.m_Y ;
+				++Player.m_Y;
 				GetBonus(Matrice, Player);
 
 				for (unsigned i(Player.m_X); i < Player.m_X + Player.m_sizeX; ++i) {
@@ -719,10 +730,14 @@ namespace {
 
 	void KeyEvent(const int & ch, CMatrice & Map, SPlayer & Player) {
 
-		if (ch == CMouvTop) MovePlayer(Map, CMouvTop, Player);
-		else if (ch == CMouvBot) MovePlayer(Map, CMouvBot, Player);
-		else if (ch == CMouvLeft) MovePlayer(Map, CMouvLeft, Player);
-		else if (ch == CMouvRight) MovePlayer(Map, CMouvRight, Player);
+		if (ch == CMouvTop)
+			MovePlayer(Map, CMouvTop, Player);
+		else if (ch == CMouvBot)
+			MovePlayer(Map, CMouvBot, Player);
+		else if (ch == CMouvLeft)
+			MovePlayer(Map, CMouvLeft, Player);
+		else if (ch == CMouvRight)
+			MovePlayer(Map, CMouvRight, Player);
 		else if (ch == char(3)/*CTRL+C*/) {
 			cout << endl;
 			endwin();
@@ -734,12 +749,11 @@ namespace {
 			system("rm main.out 2>/dev/null; g++ -std=c++11  main.cpp -o main.out -Wall -ltinfo -lncurses; ./main.out");
 			exit(0);
 		}
-		string str = to_string(ch);
 
 
 	}//KeyEvent()
 
-	 // IA
+	// IA
 
 	void MoveBot(int & ch, CMatrice & Map, const unsigned & Tour) {
 
@@ -767,8 +781,10 @@ namespace {
 	}
 
 	// EDITOR
-
-	//DISPLAYS
+	void ExportMatrice(const string & DestFile) {
+		//todo
+	}
+	// DISPLAYS
 
 	void DisplayMulti() {
 
@@ -781,8 +797,7 @@ namespace {
 
 		GenerateStaticObject(Map, KDifficult);
 
-		initscr();
-		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
+		InitCurses();
 
 		ShowMatrice(Map);
 
@@ -792,7 +807,7 @@ namespace {
 
 			ShowTitle("multi.title");
 			ShowMatrice(Map, false);
-			InitCurses();
+			ListenKeyboard();
 
 			DisplayInfos(actualPlayer);
 
@@ -800,7 +815,7 @@ namespace {
 			cout << endl << "[?] Au Tour du joueur '"; Couleur(KBleu); cout << actualPlayer.m_token << '\'' << endl << '\r';
 			Couleur(KReset);
 
-			if (!(0 == i)) ch = getch();
+			if (0 != i) ch = getch();
 
 			KeyEvent(ch, Map, actualPlayer);
 
@@ -815,8 +830,8 @@ namespace {
 
 			Couleur(KBleu, KHJaune);
 			ClearScreen();
-			cout << setw(round(size.ws_col / 2));
-			for (unsigned i(0); i < 16; ++i) cout << endl;
+			SetTextMiddle();
+			PrintLines(16);
 
 			cout << "[!] Egalité !" << endl;
 			Couleur(KReset);
@@ -963,8 +978,7 @@ namespace {
 
 		GenerateStaticObject(Map, KDifficult);
 
-		initscr();
-		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
+		InitCurses();
 
 		ShowMatrice(Map);
 
@@ -976,7 +990,7 @@ namespace {
 
 			ShowMatrice(Map, false);
 
-			InitCurses();
+			ListenKeyboard();
 
 			DisplayInfos(PlayerX);
 
@@ -984,16 +998,15 @@ namespace {
 			cout << endl << "[+] A vous de jouer '"; Couleur(KBleu); cout << PlayerX.m_token << "' !" << endl << '\r';
 			Couleur(KReset);
 
-			if (!(Tour % 2 == 0)) ch = getch();
+			if (!(Tour % 2 == 0))
+				ch = getch();
 
-			if (actualPlayer.m_token == PlayerX.m_token) KeyEvent(ch, Map, PlayerX);
+			if (actualPlayer.m_token == PlayerX.m_token)
+				KeyEvent(ch, Map, PlayerX);
 
 			else if (actualPlayer.m_token == PlayerY.m_token) {
-				usleep(3000);
-
 				MoveBot(ch, Map, TourIA);
 				++TourIA;
-
 			}
 
 			if (CheckIfWin(PlayerX, PlayerY)) {
@@ -1006,9 +1019,8 @@ namespace {
 
 			Couleur(KBleu, KHJaune);
 			ClearScreen();
-			cout << setw(round(size.ws_col / 2));
-			for (unsigned i(0); i < 16; ++i) cout << endl;
-
+			SetTextMiddle();
+			PrintLines(16);
 			cout << "[!] Egalité !" << endl;
 			Couleur(KReset);
 
@@ -1018,6 +1030,9 @@ namespace {
 	} //DisplaySoloIA()
 
 	void DisplayEditor() {
+		int Key;
+		bool IsFirstTime = true;
+		unsigned NbLine, NbColumn;
 
 		ShowTitle("editor.title");
 		for (unsigned i(0); i < 3; ++i) cout << endl;
@@ -1027,27 +1042,105 @@ namespace {
 		Quand on enregistre, on l'enregistre dans /map/nom.map
 		Puis on la load avec LoadMap(); */
 
-		unsigned NbLine, NbColumn;
 		Couleur(KCyan);
-		cout << "Quelle sera la taille de la carte ? \n\r";
-		cout << "Taille en hauteur : \r";
+		cout << "Quelle sera la taille de la carte ? \n\rTaille en hauteur : ";
 		cin >> NbLine;
-		cout << "Taille en largeur : \r";
+		cout << "Taille en largeur : ";
 		cin >> NbColumn;
 
 		CMatrice EmptyMatrice = InitMatrice(NbLine, NbColumn, PlayerX, PlayerY);
-		ClearScreen();
+		SPlayer EmptyPlayer = InitPlayer(1, 1, 1, 1, ' ');
+		SBonus EmptyBonus;
+		SObstacle EmptyObstacle;
 
-		ShowTitle("editor.title");
-		for (unsigned i(0); i < 3; ++i) cout << endl;
-		Couleur(KBleu, KHJaune);
-		cout << "[+] Votre carte ressemble actuellement à cela : \n\r";
-		ShowMatrice(EmptyMatrice, false);
-		Couleur(KCyan, KHVert);
-		cout << "\n\r\r\n\rUtilisez les touches directionelle pour vous diriger sur la map. \n\rCliquez sur F, G ou H pour placer des bonus" <<
-			"\n\rCliquez sur ENTREE pour placer des obstacles\n\r";
-		Couleur(KReset);
+		InitCurses();
 
+		while (true) {
+
+
+			ShowTitle("editor.title");
+			PrintLines(3);
+			Couleur(KBleu, KHJaune);
+			cout << "[+] Votre carte ressemble actuellement à cela : \n\r";
+
+			ShowMatrice(EmptyMatrice, false);
+			Couleur(KCyan);
+			cout << "\n\r\r\n\rUtilisez les A,Z,S,D pour vous diriger sur la map. \n\rCliquez sur " << BonusX << ", " << BonusY << " ou " << BonusZ << " pour placer des bonus" <<
+				"\n\rCliquez sur ENTREE pour placer des obstacles\n\rUne fois votre edition finie, veuillez cliquer sur la touche M (menu)\n\r\n\r";
+			Couleur(KReset);
+			ListenKeyboard();
+
+			if (!IsFirstTime)
+				Key = getch();
+
+			refresh();
+			endwin();
+
+			if (Key == 'm') {
+				DisplayMenu();
+				endwin();
+				break;
+			}
+			//DEPLACEMENTS
+			else if (Key == 'z')
+				MovePlayer(EmptyMatrice, Key, EmptyPlayer);
+
+			else if (Key == 'q')
+				MovePlayer(EmptyMatrice, Key, EmptyPlayer);
+
+			else if (Key == 's')
+				MovePlayer(EmptyMatrice, Key, EmptyPlayer);
+
+			else if (Key == 'd')
+				MovePlayer(EmptyMatrice, Key, EmptyPlayer);
+
+			//CREATION BONUS
+			else if (Key == tolower(BonusX)) {
+				EmptyBonus = InitBonus(EmptyPlayer.m_X, EmptyPlayer.m_Y, BonusX);
+				MovePlayer(EmptyMatrice, 's', EmptyPlayer);
+				PutBonus(EmptyMatrice, EmptyBonus);
+			}
+
+			else if (Key == tolower(BonusY)) {
+				EmptyBonus = InitBonus(EmptyPlayer.m_X, EmptyPlayer.m_Y, BonusY);
+				MovePlayer(EmptyMatrice, 's', EmptyPlayer);
+				PutBonus(EmptyMatrice, EmptyBonus);
+			}
+
+			else if (Key == tolower(BonusZ)) {
+				EmptyBonus = InitBonus(EmptyPlayer.m_X, EmptyPlayer.m_Y, BonusZ);
+				MovePlayer(EmptyMatrice, 's', EmptyPlayer);
+				PutBonus(EmptyMatrice, EmptyBonus);
+			}
+
+			//OBSTACLE
+
+			else if ('\n' == Key /*ENTREE*/) {
+				EmptyObstacle = InitObstacle(EmptyPlayer.m_X, EmptyPlayer.m_Y, CaseObstacle);
+				MovePlayer(EmptyMatrice, 's', EmptyPlayer);
+				PutObstacle(EmptyMatrice, EmptyObstacle);
+			}
+
+			//SAUVEGARDE
+
+			else if (char(19) == Key /*CTRL+S*/) {
+				ExportMatrice("./map/map" + Random(1, 50) + ".map");
+			}
+
+			//ARRET
+
+			else if (char(3) == Key /*CTRL+C*/) {
+				endwin();
+				exit(0);
+			}
+
+			ClearScreen();
+			IsFirstTime = false;
+		}
+		ShowMatrice(EmptyMatrice);
+		refresh();
+		endwin();
+		DisplayMenu();
 	}//DisplayEditor()
 }
 
@@ -1057,7 +1150,7 @@ int main() {
 	DisplayMenu();
 	endwin();
 	Couleur(KReset);
-	cout << endl << endl;
+	PrintLines(3);
 
 	return 0;
 }
