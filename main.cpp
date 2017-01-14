@@ -15,16 +15,14 @@ using namespace std;
 TODO :
 
 - Ajouter un timer
-- Editor de map
+- Voir pourquoi l'affichage de map crées ne marche pas bien
 
 Compilation préconisée :  rm main.out; g++ -std=c++11  CMIFUC.cpp -o main.out -Wall -ltinfo -lncurses;  ./main.out
 Package à installer : libncurses5-dev (sudo apt-get install libncurses5-dev)
-Alias : projet="rm Developpement/Projet/C++/Catch\ Me\ If\ U\ Can/main.out; g++ -std=c++11  Developpement/Projet/C++/Catch\ Me\ If\ U\ Can/CMIFUC.cpp -o Developpement/Projet/C++/Catch\ Me\ If\ U\ Can/main.out -Wall -ltinfo -lncurses; cd ./Developpement/Projet/C++/Catch\ Me\ If\ U\ Can/; ./main.out; cd ../../../../"
 
 */
 
-typedef vector <char> CVLine;
-typedef vector <CVLine> CMatrice;
+typedef vector <vector <char>> CMatrice;
 
 typedef struct {
 	unsigned m_X;
@@ -168,7 +166,7 @@ namespace {
 
 		initscr();
 		ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
-	}
+	} //InitCurses()
 
 	void PrintLines(const unsigned & LineNumber) {
 		for (unsigned i(0); i < LineNumber; ++i) cout << endl;
@@ -266,7 +264,7 @@ namespace {
 		ifstream ReadedMap(File);
 		while (getline(ReadedMap, Line)) ++NbLine;
 		return NbLine;
-	}
+	}//GetMaxLine
 
 	unsigned GetMaxColumn(const string & File) {
 		string Line;
@@ -275,7 +273,7 @@ namespace {
 		getline(ReadedMap, Line);
 		return Line.length();
 
-	}
+	}//GetMaxColumn
 
 	CMatrice InitMatrice(unsigned NbLine, unsigned NbColumn, SPlayer & PlayerX, SPlayer & PlayerY, bool ShowBorder = true) {
 		CMatrice Matrice;
@@ -342,15 +340,32 @@ namespace {
 		}
 	}//ShowMatrice
 
-	CMatrice LoadMatriceByFile(const string & MapName) {
-
-		const string FullName = "./map/" + MapName;
+	CMatrice LoadMapByFile(const string & MapName) {
+		const string ExtMap = ".map";
+		const string FullName = "./map/" + MapName + ExtMap;
 		unsigned NbLine = GetMaxLine(FullName);
 		unsigned NbColumn = GetMaxColumn(FullName);
-
 		CMatrice LoadedMatrice = InitMatrice(NbLine, NbColumn, PlayerX, PlayerY);
 
-		/* Reste à ajouter les obstacles // bonus */
+		vector<string> MapLines;
+		string ReadedLine;
+		ifstream ifs(FullName);
+
+		while (true) {
+			if (ifs.eof()) break;
+			getline(ifs, ReadedLine);
+			ReadedLine += "\n\r";
+			MapLines.push_back(ReadedLine);
+			ReadedLine = "";
+		}
+		ifs.clear();
+
+		for (unsigned i(0); i < MapLines.size(); ++i) {
+			for (unsigned a(0); a < MapLines[i].size(); ++a) {
+				LoadedMatrice[i][a] = MapLines[i][a];
+			}
+		}
+
 		return LoadedMatrice;
 	}
 
@@ -442,7 +457,6 @@ namespace {
 
 				}
 				if (Matrice[i][j] == BonusZ) {
-
 
 					SLog += "MOI JE FAIS RIEN";
 					Player.m_score += 10;
@@ -772,7 +786,7 @@ namespace {
 
 	}//MoveBot()
 
-	 // DELAY
+	// DELAY
 
 	void PrintDelay() { //TODO
 		for (unsigned i(0); i < 1000; ++i) {
@@ -781,25 +795,91 @@ namespace {
 	}
 
 	// EDITOR
-	void ExportMatrice(const string & DestFile) {
-		//todo
+
+	void ExportMatrice(CMatrice & Matrice, const string & DestFile) {
+
+		string StrMatrice;
+		for (unsigned i(0); i < Matrice.size(); ++i) {
+			for (unsigned a(0); a < Matrice[i].size(); ++a) {
+
+				StrMatrice += Matrice[i][a];
+
+			}
+			StrMatrice += "\n\r";
+		}
+		ofstream ofs(DestFile);
+
+		if (ofs.is_open()) {
+
+			ofs << StrMatrice;
+			ofs.close();
+		}
+		else cout << "[!]Impossible d'écrire ici...\n\r";
+		cout << "[+] Fin de l'opération !";
 	}
+
+	string AskForMap() {
+
+		string MapName;
+
+		cout << "\n\r[?] Quel est le nom de votre carte ? : ";
+		Couleur(KReset);
+		cin >> MapName;
+
+		return MapName;
+	}
+
+	bool IsPersoMapRecquierd() {
+
+		char Choice;
+		string MapName;
+
+		ShowTitle("multi.title");
+		PrintLines(1);
+
+	recheck:
+
+		Couleur(KRouge);
+		cout << "\n\r\n\r[?] Voulez-vous charger une map prédéfinie ? [y /n /l]";
+		cout << "\n\r(Vous pouvez lister vos maps avec la touche L) : ";
+		cin >> Choice;
+
+		if ('y' == Choice || 'Y' == Choice) return true;
+
+		else if ('l' == Choice || 'L' == Choice) {
+
+			Couleur(KReset);
+			system("ls ./map");
+			PrintLines(1);
+			goto recheck;
+		}
+
+		else return false;
+
+	}
+
 	// DISPLAYS
 
 	void DisplayMulti() {
 
 		unsigned Nbround = GetTourMax();
 		int ch;
+		CMatrice Map;
 
 		PlayerX = InitPlayer(1, 1, 1, 1, TokenPlayerX);
 		PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY);
-		CMatrice Map = InitMatrice(KSizeX + 1, KSizeY + 1, PlayerX, PlayerY); // +1 due à la bordure de '#' le long de la Matrice
 
-		GenerateStaticObject(Map, KDifficult);
+
+		if (IsPersoMapRecquierd())
+			Map = LoadMapByFile(AskForMap());
+
+		else {
+			Map = InitMatrice(KSizeX + 1, KSizeY + 1, PlayerX, PlayerY); /* +1 due à la bordure de '#' le long de la Matrice */
+			GenerateStaticObject(Map, KDifficult);
+		}
 
 		InitCurses();
-
-		ShowMatrice(Map);
+		ShowMatrice(Map, false);
 
 		for (unsigned i(0); i < Nbround * 2; ++i) {
 
@@ -818,7 +898,6 @@ namespace {
 			if (0 != i) ch = getch();
 
 			KeyEvent(ch, Map, actualPlayer);
-
 
 			if (CheckIfWin(PlayerX, PlayerY)) {
 				DisplayWin(i);
@@ -844,8 +923,8 @@ namespace {
 	void DisplayLog() {
 		if (SLog != "") {
 			Couleur(KRouge, KHGris);
-			cout << endl << "[!] Dernière inforMatriceion : " << SLog << "\n\r";
-			SLog = "";
+			cout << endl << "[!] Dernière information : " << SLog << "\n\r";
+			SLog.clear();
 		}
 		Couleur(KReset);
 	} // DisplayLog()
@@ -918,7 +997,7 @@ namespace {
 		ClearScreen();
 		ShowTitle("menu.title");
 
-		vector <string> menulist = { "Jouer contre l'ordinateur (IA)", "Jouer à plusieur", "Editeur de map" ,"Options", "Quitter" };
+		vector <string> menulist = { "Jouer contre l'ordinateur (IA)", "Jouer à plusieurs", "Editeur de map" ,"Options", "Quitter" };
 
 
 		Couleur(KCyan, KHJaune); cout << "\n\r[!] Recommandation : agrandissez-la console !" << endl << endl << '\r'; Couleur(KReset);
@@ -965,20 +1044,25 @@ namespace {
 
 	void DisplaySoloIA() {
 
-		/*TODO IA SOLO*/
-
 		unsigned Nbround = GetTourMax();
 		int ch;
+		CMatrice Map;
 		unsigned TourIA, Tour(0);
-
 
 		PlayerX = InitPlayer(1, 1, 1, 1, TokenPlayerX);
 		PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY); // Le robot
-		CMatrice Map = InitMatrice(KSizeX + 1, KSizeY + 1, PlayerX, PlayerY); // +1 due à la bordure de '#' le long de la Matrice
 
 		GenerateStaticObject(Map, KDifficult);
 
 		InitCurses();
+
+		if (IsPersoMapRecquierd())
+			Map = LoadMapByFile(AskForMap());
+
+		else {
+			Map = InitMatrice(KSizeX + 1, KSizeY + 1, PlayerX, PlayerY); /* +1 due à la bordure de '#' le long de la Matrice */
+			GenerateStaticObject(Map, KDifficult);
+		}
 
 		ShowMatrice(Map);
 
@@ -1040,7 +1124,7 @@ namespace {
 		/* Avec les fleches, et la touche entrée, on créer des obstacles et des bonus.
 		On choisit la taille de la matrice.
 		Quand on enregistre, on l'enregistre dans /map/nom.map
-		Puis on la load avec LoadMap(); */
+		Puis on la load avec LoadMapByFile(); */
 
 		Couleur(KCyan);
 		cout << "Quelle sera la taille de la carte ? \n\rTaille en hauteur : ";
@@ -1066,7 +1150,7 @@ namespace {
 			ShowMatrice(EmptyMatrice, false);
 			Couleur(KCyan);
 			cout << "\n\r\r\n\rUtilisez les A,Z,S,D pour vous diriger sur la map. \n\rCliquez sur " << BonusX << ", " << BonusY << " ou " << BonusZ << " pour placer des bonus" <<
-				"\n\rCliquez sur ENTREE pour placer des obstacles\n\rUne fois votre edition finie, veuillez cliquer sur la touche M (menu)\n\r\n\r";
+				"\n\rCliquez sur ENTREE pour placer des obstacles\n\rUne fois votre edition finie, veuillez cliquer sur la touche M (menu)\n\r\n\rPour sauvegarder, veuillez maintenir CTRL+S. \n\r";
 			Couleur(KReset);
 			ListenKeyboard();
 
@@ -1097,19 +1181,19 @@ namespace {
 			//CREATION BONUS
 			else if (Key == tolower(BonusX)) {
 				EmptyBonus = InitBonus(EmptyPlayer.m_X, EmptyPlayer.m_Y, BonusX);
-				MovePlayer(EmptyMatrice, 's', EmptyPlayer);
+				MovePlayer(EmptyMatrice, 'd', EmptyPlayer);
 				PutBonus(EmptyMatrice, EmptyBonus);
 			}
 
 			else if (Key == tolower(BonusY)) {
 				EmptyBonus = InitBonus(EmptyPlayer.m_X, EmptyPlayer.m_Y, BonusY);
-				MovePlayer(EmptyMatrice, 's', EmptyPlayer);
+				MovePlayer(EmptyMatrice, 'd', EmptyPlayer);
 				PutBonus(EmptyMatrice, EmptyBonus);
 			}
 
 			else if (Key == tolower(BonusZ)) {
 				EmptyBonus = InitBonus(EmptyPlayer.m_X, EmptyPlayer.m_Y, BonusZ);
-				MovePlayer(EmptyMatrice, 's', EmptyPlayer);
+				MovePlayer(EmptyMatrice, 'd', EmptyPlayer);
 				PutBonus(EmptyMatrice, EmptyBonus);
 			}
 
@@ -1117,21 +1201,28 @@ namespace {
 
 			else if ('\n' == Key /*ENTREE*/) {
 				EmptyObstacle = InitObstacle(EmptyPlayer.m_X, EmptyPlayer.m_Y, CaseObstacle);
-				MovePlayer(EmptyMatrice, 's', EmptyPlayer);
+				MovePlayer(EmptyMatrice, 'd', EmptyPlayer);
 				PutObstacle(EmptyMatrice, EmptyObstacle);
 			}
 
 			//SAUVEGARDE
 
-			else if (char(19) == Key /*CTRL+S*/) {
-				ExportMatrice("./map/map" + Random(1, 50) + ".map");
-			}
+			else if ((char(19)) == Key /*CTRL+S*/) {
 
-			//ARRET
+				string Name;
+				Couleur(KRouge);
+				cout << "\n\r[?] Nom de la map ? ";
+				cin >> Name;
+				string FullName = "./map/MyMap_" + Name + ".map";
+				ExportMatrice(EmptyMatrice, FullName);
+				Couleur(KCyan);
+				cout << "[+]Map exportée à l'emplacement : " << FullName << "\n\r";
+				Couleur(KReset);
 
-			else if (char(3) == Key /*CTRL+C*/) {
+				refresh();
 				endwin();
-				exit(0);
+				SLog.clear();
+				DisplayMenu();
 			}
 
 			ClearScreen();
