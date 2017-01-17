@@ -1,3 +1,11 @@
+/*!
+* \file   main.cpp
+* \authors Alain Casali, Marc Laporte
+* \date January 17 2017
+* \brief   Terminal's color management
+*          beginning of the project titled "catch me if you can"
+*/
+
 #include <iostream>		// cout() ...
 #include <vector>		// vector<AType> ...
 #include <random>		// random_device ...
@@ -12,7 +20,6 @@
 using namespace std;
 
 /*
-TODO : Pq ça marche pas les '#' en mappublic ?
 
 Compilation préconisée :  rm main.out; g++ -std=c++11  CMIFUC.cpp -o main.out -Wall -ltinfo -lncurses;  ./main.out
 Package à installer : libncurses5-dev (sudo apt-get install libncurses5-dev)
@@ -83,7 +90,6 @@ namespace {
 
 	unsigned KSizeY;
 	unsigned KSizeX;
-	unsigned KDelay;
 	unsigned KDifficult;
 
 	char BonusY;
@@ -108,6 +114,7 @@ namespace {
 	void DisplayHistory();
 	void DisplayEditor();
 	void DisplayInfos(const SPlayer & Player);
+	void GenerateStaticObject(CMatrice & Map, unsigned & Difficulty, const unsigned & NbObs, const unsigned & NbBonus);
 
 	//SCREEN - INITS
 
@@ -207,7 +214,6 @@ namespace {
 
 		KSizeX = 10;
 		KSizeY = 10;
-		KDelay = 10;
 		KDifficult = 1;
 		BonusX = 'W';
 		BonusY = 'V';
@@ -224,9 +230,9 @@ namespace {
 		BShowHistory = true;
 		BShowRules = true;
 
-		VOptionsName = { "CaseEmpty", "TokenPlayerX", "TokenPlayerY", "KSizeX", "KSizeY", "KDelay", "KDifficult", "BShowRules", "BShowHistory" };
+		VOptionsName = { "CaseEmpty", "TokenPlayerX", "TokenPlayerY", "KSizeX", "KSizeY",  "KDifficult", "BShowRules", "BShowHistory" };
 
-		VOptionValue = { ".",  "X" ,"O", "10", "10", "10", "2", "true", "true" };
+		VOptionValue = { ".",  "X" ,"O", "10", "10", "2", "true", "true" };
 
 		if (1 == KDifficult) VOptionValue[6] = "1";
 		else VOptionValue[6] = "0";
@@ -250,7 +256,6 @@ namespace {
 		else if ("TokenPlayerY" == Name) TokenPlayerY = Valuetochar[0];
 		else if ("KSizeX" == Name) KSizeX = stoul(Value);
 		else if ("KSizeY" == Name) KSizeY = stoul(Value);
-		else if ("KDelay" == Name) KDelay = stoul(Value);
 		else if ("KDifficult" == Name) KDifficult = stoul(Value);
 		else if ("BShowRules" == Name) BShowRules = StrToBool(Value);
 		else if ("BShowHistory" == Name) BShowHistory = StrToBool(Value);
@@ -466,30 +471,33 @@ namespace {
 				//Début de la détéction des bonus
 
 				if (Matrice[i][j] == BonusX) {
+
 					if (Player.m_X == 1) SLog += "\n\rVous avez déjà prit un bonus de ce type !";
 					++Player.m_sizeX;
 					++Player.m_sizeY;
-					SLog += "\n\rCe bonus vous fait augmenter de taille. \n\rIl vous permet aussi de traverser les obstacles";
+					SLog += "\n\rVotre taille a augmenté!. \n\rVous pouvez désormé traverser les obstacles";
 					Player.m_score += 25;
-					SLog += "\n\r\n\rCe bonus vous a fait GAGNER 25 en score !";
+					SLog += "\n\r\n\rCe bonus vous a fait gagner 25 points!";
+
 				}
+
 				if (Matrice[i][j] == BonusY) {
 
-
-					SLog += "MOI JE FAIS RIEN";
 					Player.m_score += 15;
-					SLog += "\n\r\n\rCe bonus vous a fait GAGNER 15 en score !";
+					SLog += "\n\r\n\rCe bonus ne fait strictement rien\n\rExcepté vous faire gagner 15 points!";
 
 
 				}
+
 				if (Matrice[i][j] == BonusZ) {
 
-					SLog += "MOI JE FAIS RIEN";
+					SLog += "\n\rDes obstacles aléatoires ont été placés!";
 					Player.m_score += 10;
-					SLog += "\n\r\n\rCe bonus vous a fait GAGNER 10 en score !";
-
+					SLog += "\n\r\n\rCe bonus vous a fait gagner 10 points!";
+					GenerateStaticObject(Matrice, KDifficult, 2, 1);
 
 				}
+
 				//Fin de la détéction des bonus
 				for (unsigned i(Player.m_Y); i < Player.m_Y + Player.m_sizeY; ++i)
 					for (unsigned j(Player.m_X); j < Player.m_X + Player.m_sizeX; ++j)
@@ -517,14 +525,14 @@ namespace {
 
 	void PutObstacle(CMatrice & Matrice, SObstacle & Obstacle) {
 
-		for (int i = -1; i < 1; i++)
-
+		for (int i = -1; i < 1; ++i) {
 			if ((Matrice[Obstacle.m_Y + i][Obstacle.m_X + i] != (int)Matrice.size())) {
 
 				Matrice[Obstacle.m_Y][Obstacle.m_X] = Obstacle.m_token;
 				VObstacle.push_back(Obstacle);
-
 			}
+		}
+
 	} //PutObstacle()
 
 	void GenerateRandomObstacles(CMatrice & Matrice, const SObstacle & Obstacle, const unsigned & Totalsize) {
@@ -588,17 +596,16 @@ namespace {
 		return false;
 	}//IsMovementForbidden()
 
-	void GenerateStaticObject(CMatrice & Map, unsigned & Difficulty) {
+	void GenerateStaticObject(CMatrice & Map, unsigned & Difficulty, const unsigned & NbObs = 0, const unsigned & NbBonus = 0) {
 
 		SObstacle TmpObs;
 		SBonus TmpBonus;
 		int RndBX, RndBY;
 
-		unsigned NbObs, NbBonus, Choix;
+		unsigned Choix;
 
 		if (1 == Difficulty) {/*EASY*/
-			NbObs = 6;
-			NbBonus = 5;
+
 
 			for (unsigned i(0); i < NbObs; ++i) {
 
@@ -637,8 +644,7 @@ namespace {
 		}
 
 		else if (2 == Difficulty) { /*HARD*/
-			NbObs = Rand(7, 9);
-			NbBonus = 4;
+
 
 			for (unsigned i(0); i < NbObs; ++i) {
 
@@ -835,7 +841,7 @@ namespace {
 		}
 		else cout << "[!] Impossible d'écrire ici...\n\r";
 		cout << "[+] Fin de l'opération !";
-	}
+	} //ExportMatrice()
 
 	string AskForMap() {
 
@@ -846,7 +852,7 @@ namespace {
 		cin >> MapName;
 
 		return MapName;
-	}
+	} //AskForMap()
 
 	bool IsPersoMapRecquiered() {
 
@@ -876,7 +882,23 @@ namespace {
 
 		else if ('n' == Choice || 'n' == Choice) return false;
 
-	}
+	} //isPersoMapRecquiered
+
+	void DetectObstacle(CMatrice & Map) {
+
+		SObstacle TmpObstacle;
+
+		for (unsigned i(0); i < Map.size(); ++i) {
+			for (unsigned a(0); a < Map[i].size(); ++a) {
+				if (Map[i][a] == CaseObstacle) {
+					TmpObstacle = InitObstacle(i, a, 'e');
+					VObstacle.push_back(TmpObstacle);
+				}
+			}
+		}
+
+	} //DetectObstacle()
+
 
 	// DISPLAYS
 
@@ -887,15 +909,25 @@ namespace {
 		CMatrice Map;
 
 		PlayerX = InitPlayer(1, 1, 1, 1, TokenPlayerX);
-		PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY);
 
 
-		if (IsPersoMapRecquiered())
+		if (IsPersoMapRecquiered()) {
 			Map = LoadMapByFile(AskForMap());
+			DetectObstacle(Map);
+			PlayerY = InitPlayer(1, 1, KSizeX - 2, KSizeY - 2, TokenPlayerY);
+
+		}
 
 		else {
 			Map = InitMatrice(KSizeX + 1, KSizeY + 1, PlayerX, PlayerY); /* +1 due à la bordure de '#' le long de la Matrice */
-			GenerateStaticObject(Map, KDifficult);
+
+			if (KDifficult == 1)
+				GenerateStaticObject(Map, KDifficult, 6, 5);
+			else if (KDifficult == 2)
+				GenerateStaticObject(Map, KDifficult, Rand(7, 9), 4);
+
+			PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY);
+
 		}
 
 		InitCurses();
@@ -1071,18 +1103,23 @@ namespace {
 		unsigned TourIA, Tour(0);
 
 		PlayerX = InitPlayer(1, 1, 1, 1, TokenPlayerX);
-		
+
 		if (IsPublicMap) {
 
-			PlayerY = InitPlayer(1, 1, KSizeX - 2, KSizeY - 2, TokenPlayerY); 
+			PlayerY = InitPlayer(1, 1, KSizeX - 2, KSizeY - 2, TokenPlayerY);
 			Map = LoadMapByFile(AskForMap());
+			DetectObstacle(Map);
 		}
 
 		else {
 
 			PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY);
 			Map = InitMatrice(KSizeX + 1, KSizeY + 1, PlayerX, PlayerY); /* +1 due à la bordure de '#' le long de la Matrice */
-			GenerateStaticObject(Map, KDifficult);
+
+			if (KDifficult == 1)
+				GenerateStaticObject(Map, KDifficult, 6, 5);
+			else
+				GenerateStaticObject(Map, KDifficult, Rand(7, 9), 4);
 		}
 
 		InitCurses();
