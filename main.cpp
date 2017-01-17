@@ -12,10 +12,7 @@
 using namespace std;
 
 /*
-TODO :
-
-- Ajouter un timer
-- Voir pourquoi l'affichage de map crées ne marche pas bien
+TODO : Pq ça marche pas les '#' en mappublic ?
 
 Compilation préconisée :  rm main.out; g++ -std=c++11  CMIFUC.cpp -o main.out -Wall -ltinfo -lncurses;  ./main.out
 Package à installer : libncurses5-dev (sudo apt-get install libncurses5-dev)
@@ -60,7 +57,9 @@ namespace {
 	const string KBleu("34");
 	const string KMagenta("35");
 	const string KCyan("36");
-
+	const string KUnderLine("4");
+	const string KBold("1");
+	const string KOverLine("53");
 	/*HIGHTLIGHT*/
 	const string KHNoir("40");
 	const string KHRouge("41");
@@ -113,8 +112,11 @@ namespace {
 	//SCREEN - INITS
 
 	void Couleur(const string & Coul, const string Hightlight = "") {
-		if (Hightlight == "") cout << "\033[" << Coul << "m";
-		else cout << "\033[34m\033[" << Hightlight << "m";
+
+		if (Hightlight != "")
+			cout << "\033[34m\033[" << Hightlight << "m";
+		else
+			cout << "\033[" << Coul << "m";
 
 
 	} //Couleur()
@@ -262,7 +264,12 @@ namespace {
 		string Line;
 		unsigned NbLine(0);
 		ifstream ReadedMap(File);
-		while (getline(ReadedMap, Line)) ++NbLine;
+
+		while (!ReadedMap.eof()) {
+			getline(ReadedMap, Line);
+			++NbLine;
+		}
+
 		return NbLine;
 	}//GetMaxLine
 
@@ -323,46 +330,66 @@ namespace {
 			for (unsigned a(0); a < Matrice[i].size(); ++a) {
 
 				/*GESTION DES CoulEURS*/
+				if (Matrice[i][a] == CaseObstacle) {
+					Couleur(KBold);
+					Couleur(KHNoir);
+				}
 
-				if (Matrice[i][a] == CaseObstacle) Couleur(KNoir);
-				if (Matrice[i][a] == BonusX) Couleur(KVert, KHVert);
-				if (Matrice[i][a] == BonusY) Couleur(KVert, KHVert);
-				if (Matrice[i][a] == BonusZ) Couleur(KVert, KHVert);
-				if (Matrice[i][a] == TokenPlayerX) Couleur(KRouge, KHCyan);
-				if (Matrice[i][a] == TokenPlayerY)	Couleur(KBleu, KHJaune);
-				if (Matrice[i][a] == CaseEmpty) Couleur(KMagenta);
+				if (Matrice[i][a] == BonusX)
+					Couleur(KVert, KHVert);
+
+				if (Matrice[i][a] == BonusY)
+					Couleur(KVert, KHVert);
+
+				if (Matrice[i][a] == BonusZ)
+					Couleur(KVert, KHVert);
+
+				if (Matrice[i][a] == TokenPlayerX) {
+					Couleur(KBold);
+					Couleur(KRouge, KHCyan);
+				}
+
+				if (Matrice[i][a] == TokenPlayerY) {
+					Couleur(KBold);
+					Couleur(KBleu, KHJaune);
+				}
+
+				if (Matrice[i][a] == CaseEmpty)
+					Couleur(KMagenta);
 
 				cout << Matrice[i][a];
 				Couleur(KReset);
 
 			}
+
 			cout << endl;
 		}
 	}//ShowMatrice
 
 	CMatrice LoadMapByFile(const string & MapName) {
-		const string ExtMap = ".map";
-		const string FullName = "./map/" + MapName + ExtMap;
+
+		const string FullName = "./map/MyMap_" + MapName + ".map";
 		unsigned NbLine = GetMaxLine(FullName);
 		unsigned NbColumn = GetMaxColumn(FullName);
 		CMatrice LoadedMatrice = InitMatrice(NbLine, NbColumn, PlayerX, PlayerY);
 
-		vector<string> MapLines;
+		vector <string> MapLines;
 		string ReadedLine;
 		ifstream ifs(FullName);
 
-		while (true) {
-			if (ifs.eof()) break;
+		while (!ifs.eof()) {
+
 			getline(ifs, ReadedLine);
-			ReadedLine += "\n\r";
-			MapLines.push_back(ReadedLine);
-			ReadedLine = "";
+			if (!(ReadedLine == "\n\r" || ReadedLine[0] == '\n'))
+				MapLines.push_back(ReadedLine);
 		}
+
 		ifs.clear();
 
-		for (unsigned i(0); i < MapLines.size(); ++i) {
-			for (unsigned a(0); a < MapLines[i].size(); ++a) {
+		for (unsigned i(0); i < LoadedMatrice.size(); ++i) {
+			for (unsigned a(0); a < LoadedMatrice[i].size(); ++a) {
 				LoadedMatrice[i][a] = MapLines[i][a];
+
 			}
 		}
 
@@ -386,15 +413,14 @@ namespace {
 
 		SPlayer Winner = GetWinner(PlayerX, PlayerY, Tour);
 
-		if (IsBot) {
-
+		if (IsBot)
 			ClearScreen();
-			SetTextMiddle();
-		}
+
 
 		PrintLines(1);
 		Couleur(KRouge, KHCyan);
 
+		PrintLines(6);
 		cout << endl << endl << "[!] Le joueur '" << Winner.m_token << "' a gagné avec : ";
 
 		Couleur(KHBleu, KHGris); cout << Winner.m_score;
@@ -403,12 +429,12 @@ namespace {
 		if (BShowHistory) {
 			PrintLines(3);
 			Couleur(KRouge, KHJaune);
-			cout << "Historique du gagnant : \n\r" << endl << "n° | Mouv \n\r" << "__________\n\r";
+
+			cout << "Historique du gagnant : \n\r" << endl << "n° | Mouv \n\r" << "________\n\r";
 
 			for (unsigned i(0); i < Winner.m_history.size(); ++i)
 				cout << "| " << i << " | " << Winner.m_history[i] << " | " << "\n\r";
 
-			Couleur(KReset);
 		}
 
 		Couleur(KReset);
@@ -566,7 +592,7 @@ namespace {
 
 		SObstacle TmpObs;
 		SBonus TmpBonus;
-		int RndBX, rndBY;
+		int RndBX, RndBY;
 
 		unsigned NbObs, NbBonus, Choix;
 
@@ -586,8 +612,8 @@ namespace {
 
 				if ((PlayerX.m_X == TmpObs.m_X && PlayerX.m_Y == TmpObs.m_Y)
 					&& PlayerY.m_X == TmpObs.m_X && PlayerY.m_Y == TmpObs.m_Y) {
-					--i;
 
+					--i;
 					continue;
 				}
 
@@ -600,11 +626,11 @@ namespace {
 			for (unsigned i(0); i < NbBonus; ++i) {
 				Choix = Rand(1, 3);
 				RndBX = Rand(round(KSizeX - round(KSizeX / 3)) - Rand(1, 3), round(KSizeX - round(KSizeX / 5)) + Rand(1, 3));
-				rndBY = Rand(round(KSizeY - round(KSizeY / 3)) - Rand(1, 3), round(KSizeY - round(KSizeY / 5)) + Rand(1, 3));
+				RndBY = Rand(round(KSizeY - round(KSizeY / 3)) - Rand(1, 3), round(KSizeY - round(KSizeY / 5)) + Rand(1, 3));
 
-				if (Choix == 1) TmpBonus = InitBonus(RndBX - 1, rndBY, BonusY);
-				else if (Choix == 2) TmpBonus = InitBonus(RndBX - 1, rndBY, BonusX);
-				else if (Choix == 3) TmpBonus = InitBonus(RndBX - 1, rndBY, BonusZ);
+				if (Choix == 1) TmpBonus = InitBonus(RndBX - 1, RndBY, BonusY);
+				else if (Choix == 2) TmpBonus = InitBonus(RndBX - 1, RndBY, BonusX);
+				else if (Choix == 3) TmpBonus = InitBonus(RndBX - 1, RndBY, BonusZ);
 
 				PutBonus(Map, TmpBonus);
 			}
@@ -641,14 +667,14 @@ namespace {
 
 
 			RndBX = Rand(round(KSizeX - round(KSizeX / 3)) - Rand(1, 3), round(KSizeX - round(KSizeX / 5)));
-			rndBY = Rand(round(KSizeY - round(KSizeY / 3)) - Rand(1, 3), round(KSizeY - round(KSizeY / 5)));
+			RndBY = Rand(round(KSizeY - round(KSizeY / 3)) - Rand(1, 3), round(KSizeY - round(KSizeY / 5)));
 
 			for (unsigned i(0); i < NbBonus; ++i) {
 				Choix = Rand(1, 3);
 
-				if (1 == Choix)  TmpBonus = InitBonus(RndBX - 1, rndBY, BonusY);
-				else if (2 == Choix) TmpBonus = InitBonus(RndBX - 1, rndBY, BonusX);
-				else if (3 == Choix) TmpBonus = InitBonus(RndBX - 1, rndBY, BonusZ);
+				if (1 == Choix)  TmpBonus = InitBonus(RndBX - 1, RndBY, BonusY);
+				else if (2 == Choix) TmpBonus = InitBonus(RndBX - 1, RndBY, BonusX);
+				else if (3 == Choix) TmpBonus = InitBonus(RndBX - 1, RndBY, BonusZ);
 
 				PutBonus(Map, TmpBonus);
 			}
@@ -767,7 +793,7 @@ namespace {
 
 	}//KeyEvent()
 
-	// IA
+	// IA (BOT)
 
 	void MoveBot(int & ch, CMatrice & Map, const unsigned & Tour) {
 
@@ -786,14 +812,6 @@ namespace {
 
 	}//MoveBot()
 
-	// DELAY
-
-	void PrintDelay() { //TODO
-		for (unsigned i(0); i < 1000; ++i) {
-			cout << i;
-		}
-	}
-
 	// EDITOR
 
 	void ExportMatrice(CMatrice & Matrice, const string & DestFile) {
@@ -805,16 +823,17 @@ namespace {
 				StrMatrice += Matrice[i][a];
 
 			}
-			StrMatrice += "\n\r";
+			if (i < Matrice.size() - 1)
+				StrMatrice += '\n';
 		}
-		ofstream ofs(DestFile);
 
+		ofstream ofs(DestFile);
 		if (ofs.is_open()) {
 
 			ofs << StrMatrice;
 			ofs.close();
 		}
-		else cout << "[!]Impossible d'écrire ici...\n\r";
+		else cout << "[!] Impossible d'écrire ici...\n\r";
 		cout << "[+] Fin de l'opération !";
 	}
 
@@ -822,14 +841,14 @@ namespace {
 
 		string MapName;
 
-		cout << "\n\r[?] Quel est le nom de votre carte ? : ";
+		cout << "\n\r[?] Quel est le nom de votre carte (Nom : mot comprit entre 'Mymap_' et '.map')? : ";
 		Couleur(KReset);
 		cin >> MapName;
 
 		return MapName;
 	}
 
-	bool IsPersoMapRecquierd() {
+	bool IsPersoMapRecquiered() {
 
 		char Choice;
 		string MapName;
@@ -849,12 +868,13 @@ namespace {
 		else if ('l' == Choice || 'L' == Choice) {
 
 			Couleur(KReset);
+			PrintLines(1);
 			system("ls ./map");
 			PrintLines(1);
 			goto recheck;
 		}
 
-		else return false;
+		else if ('n' == Choice || 'n' == Choice) return false;
 
 	}
 
@@ -870,7 +890,7 @@ namespace {
 		PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY);
 
 
-		if (IsPersoMapRecquierd())
+		if (IsPersoMapRecquiered())
 			Map = LoadMapByFile(AskForMap());
 
 		else {
@@ -1045,31 +1065,36 @@ namespace {
 	void DisplaySoloIA() {
 
 		unsigned Nbround = GetTourMax();
-		int ch;
+		bool IsPublicMap = IsPersoMapRecquiered();
+		int Key;
 		CMatrice Map;
 		unsigned TourIA, Tour(0);
 
 		PlayerX = InitPlayer(1, 1, 1, 1, TokenPlayerX);
-		PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY); // Le robot
+		
+		if (IsPublicMap) {
 
-		GenerateStaticObject(Map, KDifficult);
-
-		InitCurses();
-
-		if (IsPersoMapRecquierd())
+			PlayerY = InitPlayer(1, 1, KSizeX - 2, KSizeY - 2, TokenPlayerY); 
 			Map = LoadMapByFile(AskForMap());
+		}
 
 		else {
+
+			PlayerY = InitPlayer(1, 1, KSizeX - 1, KSizeY - 1, TokenPlayerY);
 			Map = InitMatrice(KSizeX + 1, KSizeY + 1, PlayerX, PlayerY); /* +1 due à la bordure de '#' le long de la Matrice */
 			GenerateStaticObject(Map, KDifficult);
 		}
 
+		InitCurses();
+
+		SetTextMiddle();
 		ShowMatrice(Map);
 
 		for (; Tour < Nbround * 2; ++Tour) {
 			/*PlayerX = User. PlayerY = IA.*/
 			SPlayer &actualPlayer = (Tour % 2 == 0 ? PlayerX : PlayerY);
-			cout << endl;
+
+			PrintLines(1);
 			ShowTitle("solo.title");
 
 			ShowMatrice(Map, false);
@@ -1083,13 +1108,13 @@ namespace {
 			Couleur(KReset);
 
 			if (!(Tour % 2 == 0))
-				ch = getch();
+				Key = getch();
 
 			if (actualPlayer.m_token == PlayerX.m_token)
-				KeyEvent(ch, Map, PlayerX);
+				KeyEvent(Key, Map, PlayerX);
 
 			else if (actualPlayer.m_token == PlayerY.m_token) {
-				MoveBot(ch, Map, TourIA);
+				MoveBot(Key, Map, TourIA);
 				++TourIA;
 			}
 
@@ -1121,11 +1146,6 @@ namespace {
 		ShowTitle("editor.title");
 		for (unsigned i(0); i < 3; ++i) cout << endl;
 
-		/* Avec les fleches, et la touche entrée, on créer des obstacles et des bonus.
-		On choisit la taille de la matrice.
-		Quand on enregistre, on l'enregistre dans /map/nom.map
-		Puis on la load avec LoadMapByFile(); */
-
 		Couleur(KCyan);
 		cout << "Quelle sera la taille de la carte ? \n\rTaille en hauteur : ";
 		cin >> NbLine;
@@ -1133,7 +1153,7 @@ namespace {
 		cin >> NbColumn;
 
 		CMatrice EmptyMatrice = InitMatrice(NbLine, NbColumn, PlayerX, PlayerY);
-		SPlayer EmptyPlayer = InitPlayer(1, 1, 1, 1, ' ');
+		SPlayer EmptyPlayer = InitPlayer(1, 1, 1, 1, '-');
 		SBonus EmptyBonus;
 		SObstacle EmptyObstacle;
 
@@ -1165,6 +1185,8 @@ namespace {
 				endwin();
 				break;
 			}
+
+
 			//DEPLACEMENTS
 			else if (Key == 'z')
 				MovePlayer(EmptyMatrice, Key, EmptyPlayer);
@@ -1205,9 +1227,11 @@ namespace {
 				PutObstacle(EmptyMatrice, EmptyObstacle);
 			}
 
-			//SAUVEGARDE
+
+			//SAVE
 
 			else if ((char(19)) == Key /*CTRL+S*/) {
+				EmptyMatrice[EmptyPlayer.m_Y][EmptyPlayer.m_X] = CaseEmpty;
 
 				string Name;
 				Couleur(KRouge);
@@ -1227,7 +1251,14 @@ namespace {
 
 			ClearScreen();
 			IsFirstTime = false;
+
+			//SOLVING OBSTACLE BUG FOR MAP CREATION
+
+			EmptyMatrice[1][1] = CaseEmpty;
+
 		}
+
+
 		ShowMatrice(EmptyMatrice);
 		refresh();
 		endwin();
@@ -1244,4 +1275,4 @@ int main() {
 	PrintLines(3);
 
 	return 0;
-}
+} //main()
