@@ -1,0 +1,5 @@
+<map id="DisplayOption" name="DisplayOption">
+<area shape="rect" id="node2" href="$main_8cpp.html#a41ff9290a9a345af10f8faa5902219ba" title="Display game&#39;s meny. " alt="" coords="157,5,256,32"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#a3c10126bc1b330cbe5d4a0d7e6a0561d" title="Display game&#39;s map editor. " alt="" coords="305,5,405,32"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="329,56,380,83"/>
+</map>

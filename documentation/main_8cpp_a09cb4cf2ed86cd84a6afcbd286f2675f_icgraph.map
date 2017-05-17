@@ -1,0 +1,13 @@
+<map id="PutBonus" name="PutBonus">
+<area shape="rect" id="node2" href="$main_8cpp.html#a3c10126bc1b330cbe5d4a0d7e6a0561d" title="Display game&#39;s map editor. " alt="" coords="726,122,826,149"/>
+<area shape="rect" id="node6" href="$main_8cpp.html#a66e3a19b52f8cf80670b34439d85bc41" title="Generate random objects into map. " alt="" coords="133,147,280,174"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#a41ff9290a9a345af10f8faa5902219ba" title="Display game&#39;s meny. " alt="" coords="877,97,976,123"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#a9dab2f827f9082be26626265eb0d2d9b" title="Display game&#39;s options. " alt="" coords="1024,97,1128,123"/>
+<area shape="rect" id="node5" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="1051,147,1101,174"/>
+<area shape="rect" id="node7" href="$main_8cpp.html#a0a80a7d8e12102a75ff9fd79ecaac1d4" title="Display multiplayer game. " alt="" coords="729,71,823,98"/>
+<area shape="rect" id="node8" href="$main_8cpp.html#a95561bb31d1222a79d7009485094238f" title="Display game agaisn&#39;t bot (IA) " alt="" coords="723,21,829,47"/>
+<area shape="rect" id="node9" href="$main_8cpp.html#acbfaab6d12444e8a01234354f3ea0f95" title="Check if player get bonus. " alt="" coords="328,122,408,149"/>
+<area shape="rect" id="node10" href="$main_8cpp.html#a2222b1ff10605e54e4e644925779f838" title="Move player to a specific position. " alt="" coords="456,97,547,123"/>
+<area shape="rect" id="node11" href="$main_8cpp.html#a73d25827c7fca8b60cb662fdf7224236" title="Move player to the position depending of what he typed. " alt="" coords="595,71,674,98"/>
+<area shape="rect" id="node12" href="$main_8cpp.html#a8155410b7eecde53c245808095736050" title="Move bot to a specific position. " alt="" coords="597,21,672,47"/>
+</map>

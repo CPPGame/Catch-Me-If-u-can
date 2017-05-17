@@ -1,0 +1,12 @@
+<map id="ClearScreen" name="ClearScreen">
+<area shape="rect" id="node2" href="$main_8cpp.html#a3c10126bc1b330cbe5d4a0d7e6a0561d" title="Display game&#39;s map editor. " alt="" coords="489,195,589,221"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#a41ff9290a9a345af10f8faa5902219ba" title="Display game&#39;s meny. " alt="" coords="640,233,739,260"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#a9dab2f827f9082be26626265eb0d2d9b" title="Display game&#39;s options. " alt="" coords="787,233,891,260"/>
+<area shape="rect" id="node6" href="$main_8cpp.html#a0a80a7d8e12102a75ff9fd79ecaac1d4" title="Display multiplayer game. " alt="" coords="491,271,586,297"/>
+<area shape="rect" id="node7" href="$main_8cpp.html#a95561bb31d1222a79d7009485094238f" title="Display game agaisn&#39;t bot (IA) " alt="" coords="486,372,591,399"/>
+<area shape="rect" id="node8" href="$main_8cpp.html#ab3aa37f226e2bdb4502be5570601dbbe" title="Display win screen. " alt="" coords="313,347,402,373"/>
+<area shape="rect" id="node9" href="$main_8cpp.html#ad8c9fce67b6a2e769df0fb2ea8c792c2" title="Show matrix on console. " alt="" coords="308,195,407,221"/>
+<area shape="rect" id="node10" href="$main_8cpp.html#abda677bdbc48d27bc0209b27a9183b3e" title="Show title from file. " alt="" coords="149,397,229,424"/>
+<area shape="rect" id="node5" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="813,284,864,311"/>
+<area shape="rect" id="node11" href="$main_8cpp.html#ac4eeedb07b07606ba876fcd51e97aa8e" title="Ask the player if a public map is wanted. " alt="" coords="278,397,437,424"/>
+</map>

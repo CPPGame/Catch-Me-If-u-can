@@ -1,0 +1,10 @@
+<map id="KVert" name="KVert">
+<area shape="rect" id="node2" href="$main_8cpp.html#abe723b75e87e5fa702ca78553c9fc33e" title="Display infos about a specific player. " alt="" coords="111,5,206,32"/>
+<area shape="rect" id="node9" href="$main_8cpp.html#ad8c9fce67b6a2e769df0fb2ea8c792c2" title="Show matrix on console. " alt="" coords="109,56,208,83"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#a0a80a7d8e12102a75ff9fd79ecaac1d4" title="Display multiplayer game. " alt="" coords="262,5,357,32"/>
+<area shape="rect" id="node8" href="$main_8cpp.html#a95561bb31d1222a79d7009485094238f" title="Display game agaisn&#39;t bot (IA) " alt="" coords="257,56,362,83"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#a41ff9290a9a345af10f8faa5902219ba" title="Display game&#39;s meny. " alt="" coords="411,56,509,83"/>
+<area shape="rect" id="node5" href="$main_8cpp.html#a3c10126bc1b330cbe5d4a0d7e6a0561d" title="Display game&#39;s map editor. " alt="" coords="559,107,659,133"/>
+<area shape="rect" id="node6" href="$main_8cpp.html#a9dab2f827f9082be26626265eb0d2d9b" title="Display game&#39;s options. " alt="" coords="557,56,661,83"/>
+<area shape="rect" id="node7" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="584,5,635,32"/>
+</map>

@@ -1,0 +1,9 @@
+<map id="GetWinner" name="GetWinner">
+<area shape="rect" id="node2" href="$main_8cpp.html#ab3aa37f226e2bdb4502be5570601dbbe" title="Display win screen. " alt="" coords="139,56,229,83"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#a0a80a7d8e12102a75ff9fd79ecaac1d4" title="Display multiplayer game. " alt="" coords="283,31,378,57"/>
+<area shape="rect" id="node8" href="$main_8cpp.html#a95561bb31d1222a79d7009485094238f" title="Display game agaisn&#39;t bot (IA) " alt="" coords="278,81,383,108"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#a41ff9290a9a345af10f8faa5902219ba" title="Display game&#39;s meny. " alt="" coords="432,56,531,83"/>
+<area shape="rect" id="node5" href="$main_8cpp.html#a3c10126bc1b330cbe5d4a0d7e6a0561d" title="Display game&#39;s map editor. " alt="" coords="581,5,681,32"/>
+<area shape="rect" id="node6" href="$main_8cpp.html#a9dab2f827f9082be26626265eb0d2d9b" title="Display game&#39;s options. " alt="" coords="579,56,683,83"/>
+<area shape="rect" id="node7" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="605,107,656,133"/>
+</map>

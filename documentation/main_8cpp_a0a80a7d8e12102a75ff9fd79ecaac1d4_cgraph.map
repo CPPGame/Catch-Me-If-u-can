@@ -1,0 +1,51 @@
+<map id="DisplayMulti" name="DisplayMulti">
+<area shape="rect" id="node2" href="$main_8cpp.html#ac90244b0fe3f2e083ae52d5760439021" title="Ask the player for map name. " alt="" coords="370,114,459,140"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#af9f91bea4def615e1c22d491597ad0dc" title="Print color. " alt="" coords="569,367,623,394"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#ae421976620c052c8350660039b8cb3bd" title="KReset" alt="" coords="563,240,629,267"/>
+<area shape="rect" id="node5" href="$main_8cpp.html#aee2e5fd1b1a571f806d764682f1d8c90" title="Check if someone won. " alt="" coords="184,1228,275,1255"/>
+<area shape="rect" id="node6" href="$main_8cpp.html#a6a3ca153f0817e8ba91a023b886bb662" title="Clear console. " alt="" coords="549,772,643,799"/>
+<area shape="rect" id="node7" href="$main_8cpp.html#ad259a0fe4a075f30a698adbb7ce856fa" title="Detect obstacle for public map. " alt="" coords="737,1330,850,1356"/>
+<area shape="rect" id="node9" href="$main_8cpp.html#abe723b75e87e5fa702ca78553c9fc33e" title="Display infos about a specific player. " alt="" coords="182,418,277,444"/>
+<area shape="rect" id="node17" href="$main_8cpp.html#ab3aa37f226e2bdb4502be5570601dbbe" title="Display win screen. " alt="" coords="370,620,459,647"/>
+<area shape="rect" id="node19" href="$main_8cpp.html#a439d482af62cc7f6247fe21e3f59c74d" title="PrintLines. " alt="" coords="556,975,636,1002"/>
+<area shape="rect" id="node22" href="$main_8cpp.html#aafb93dbdd3583f522d10e16edc95ba23" title="KHJaune" alt="" coords="558,823,634,850"/>
+<area shape="rect" id="node23" href="$main_8cpp.html#a66e3a19b52f8cf80670b34439d85bc41" title="Generate random objects into map. " alt="" coords="720,1456,867,1483"/>
+<area shape="rect" id="node24" href="$main_8cpp.html#ac4330fa5c17f60cf9cf7e79dff83b90a" title="Generate random number. " alt="" coords="1168,1482,1221,1508"/>
+<area shape="rect" id="node30" href="$main_8cpp.html#a2925be0387def86e548478edcc7ce10b" title="Ask player maximum round. " alt="" coords="367,63,462,90"/>
+<area shape="rect" id="node31" href="$main_8cpp.html#a49f4cf890d7457a1b15558ccb8e6a495" title="Initiate curses allowing (with ListenKeyboard() ) to detect key. " alt="" coords="188,1482,271,1508"/>
+<area shape="rect" id="node32" href="$main_8cpp.html#ae5dd4053c94167f988ce9b69829436d9" title="Initiate values to an empty matrix. " alt="" coords="373,1532,456,1559"/>
+<area shape="rect" id="node33" href="$main_8cpp.html#ae8ee6db0b0805d160d3a8e161f22686f" title="Initiate values to an empty player. " alt="" coords="191,1634,268,1660"/>
+<area shape="rect" id="node34" href="$main_8cpp.html#ac4eeedb07b07606ba876fcd51e97aa8e" title="Ask the player if a public map is wanted. " alt="" coords="150,620,309,647"/>
+<area shape="rect" id="node35" href="$main_8cpp.html#abda677bdbc48d27bc0209b27a9183b3e" title="Show title from file. " alt="" coords="375,874,455,900"/>
+<area shape="rect" id="node36" href="$main_8cpp.html#a566a648bad2891bdf1d5746fed6fc6d3" title="KBleu" alt="" coords="567,1051,625,1078"/>
+<area shape="rect" id="node37" href="$main_8cpp.html#a73d25827c7fca8b60cb662fdf7224236" title="Move player to the position depending of what he typed. " alt="" coords="190,1380,269,1407"/>
+<area shape="rect" id="node42" href="$main_8cpp.html#ab1c97d168582ff4e21c2b649229c88a0" title="KMagenta" alt="" coords="555,1114,637,1140"/>
+<area shape="rect" id="node43" href="$main_8cpp.html#a5416ea408830e975ac845e9d1c8cad6d" title="Listen to keyboard using no&#45;canonical mode. " alt="" coords="173,1684,285,1711"/>
+<area shape="rect" id="node44" href="$main_8cpp.html#aeedea987571b9a9b6e9344fb71ce0b6e" title="Load map by file. " alt="" coords="173,1583,285,1610"/>
+<area shape="rect" id="node47" href="$main_8cpp.html#abc45b18badf0e1bc2711a1c59522b9e4" title="Set text to the middle screen. " alt="" coords="543,1171,649,1198"/>
+<area shape="rect" id="node48" href="$main_8cpp.html#ad8c9fce67b6a2e769df0fb2ea8c792c2" title="Show matrix on console. " alt="" coords="365,823,464,850"/>
+<area shape="rect" id="node8" href="$main_8cpp.html#a91722ee5869e1bf9915f846619a1e11e" title="Initiate values to an empty obstacle. " alt="" coords="961,1330,1053,1356"/>
+<area shape="rect" id="node10" href="$main_8cpp.html#a99b92c7501884ab6af1cb65a5fa06ffe" title="Display game&#39;s logs. " alt="" coords="371,418,458,444"/>
+<area shape="rect" id="node12" href="$main_8cpp.html#a09f08ffca2080e9ca9c050093a2ca6d5" title="KRouge" alt="" coords="561,468,631,495"/>
+<area shape="rect" id="node13" href="$main_8cpp.html#aa608863de5cd86b7b36f68a1189222cb" title="KCyan" alt="" coords="565,38,627,64"/>
+<area shape="rect" id="node14" href="$main_8cpp.html#a5fdd712ddf06695a28c70717d8b08f61" title="KHVert" alt="" coords="563,722,629,748"/>
+<area shape="rect" id="node15" href="$main_8cpp.html#af02736496532ff1e9c9137691bfb1e07" title="KJaune" alt="" coords="381,266,448,292"/>
+<area shape="rect" id="node16" href="$main_8cpp.html#a1cdcc3e3fe7660a6f85532bb0d228fee" title="KVert" alt="" coords="569,671,623,698"/>
+<area shape="rect" id="node11" href="$main_8cpp.html#a7f7484fd43c5ca0abf2d249bbcfe764a" title="KHGris" alt="" coords="563,418,629,444"/>
+<area shape="rect" id="node18" href="$main_8cpp.html#a2f6938887ff9b98f90c2d44b1a752498" title="Get the game winner. " alt="" coords="554,519,638,546"/>
+<area shape="rect" id="node20" href="$main_8cpp.html#adeba209b242c0053bac395327ade2407" title="KHCyan" alt="" coords="560,620,632,647"/>
+<area shape="rect" id="node21" href="$main_8cpp.html#a4cfe3aacd6f6818577bc3ff6896a1596" title="KHBleu" alt="" coords="563,570,629,596"/>
+<area shape="rect" id="node25" href="$main_8cpp.html#a0396c079f13ce5bde1ef8103b612664b" title="Check if player is surrounded of obstacles. " alt="" coords="957,1532,1056,1559"/>
+<area shape="rect" id="node26" href="$main_8cpp.html#a13a908c5e8e03a1c5fc1df4918afdde9" title="Generate random obstacles into matrix. " alt="" coords="915,1583,1098,1610"/>
+<area shape="rect" id="node28" href="$main_8cpp.html#ad8db2e14f57ece7ece38ba3c4340430c" title="Initiate values to an empty bonus. " alt="" coords="968,1380,1045,1407"/>
+<area shape="rect" id="node29" href="$main_8cpp.html#a09cb4cf2ed86cd84a6afcbd286f2675f" title="Put bonus to matrix. " alt="" coords="967,1431,1046,1458"/>
+<area shape="rect" id="node27" href="$main_8cpp.html#a8b33ebdefa4c528aad2b8b479e3c8196" title="Put obstacle to matrix. " alt="" coords="1147,1583,1242,1610"/>
+<area shape="rect" id="node38" href="$main_8cpp.html#a2222b1ff10605e54e4e644925779f838" title="Move player to a specific position. " alt="" coords="369,1380,460,1407"/>
+<area shape="rect" id="node39" href="$main_8cpp.html#abac3acedeb8cffa52da732a82706bc15" title="Check if player can move to the position he decided to go. " alt="" coords="521,1431,671,1458"/>
+<area shape="rect" id="node40" href="$main_8cpp.html#a42224076578ef19d683bec95f52c9fa2" title="Check if player got the bonus that make his size up. " alt="" coords="543,1482,649,1508"/>
+<area shape="rect" id="node41" href="$main_8cpp.html#acbfaab6d12444e8a01234354f3ea0f95" title="Check if player get bonus. " alt="" coords="556,1380,636,1407"/>
+<area shape="rect" id="node45" href="$main_8cpp.html#a907d83640a0498aee67140fdabbf3c10" title="Get the total of lines of a specific text file. " alt="" coords="369,1583,461,1610"/>
+<area shape="rect" id="node46" href="$main_8cpp.html#a0fe79f61a020482e170a4acd2c0a1a7c" title="Get the total of columns of a specific text file. " alt="" coords="358,1634,471,1660"/>
+<area shape="rect" id="node49" href="$main_8cpp.html#ab825e52d6001988e0c6b6b8214180976" title="KBold" alt="" coords="567,924,625,951"/>
+<area shape="rect" id="node50" href="$main_8cpp.html#ad090b1a081d567ecee3634d39d02cca4" title="KHNoir" alt="" coords="563,874,629,900"/>
+</map>

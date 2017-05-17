@@ -1,0 +1,6 @@
+<map id="DisplayMulti" name="DisplayMulti">
+<area shape="rect" id="node2" href="$main_8cpp.html#a41ff9290a9a345af10f8faa5902219ba" title="Display game&#39;s meny. " alt="" coords="149,56,248,83"/>
+<area shape="rect" id="node3" href="$main_8cpp.html#a3c10126bc1b330cbe5d4a0d7e6a0561d" title="Display game&#39;s map editor. " alt="" coords="298,5,398,32"/>
+<area shape="rect" id="node4" href="$main_8cpp.html#a9dab2f827f9082be26626265eb0d2d9b" title="Display game&#39;s options. " alt="" coords="296,56,400,83"/>
+<area shape="rect" id="node5" href="$main_8cpp.html#ae66f6b31b5ad750f1fe042a706a4e3d4" title="main" alt="" coords="323,107,373,133"/>
+</map>
