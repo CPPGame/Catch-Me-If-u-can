@@ -1,2 +1,5 @@
 # Catch-Me-If-u-can
-Documentation.pdf is the official README :-)
+
+[Click here to view the official documentation](Documentation.pdf)
+
+(C) Kevin VALERIO, 2017
